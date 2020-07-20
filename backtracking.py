@@ -1,17 +1,13 @@
 import numpy as np
 import math
-from copy import deepcopy
 
 BLANK_STATE = 0
 
 
-def backtracking(board, index):
+def backtracking(board, index=(0, 0)):
     row_index, column_index = index
 
-    if is_board_full(board) or row_index == 9:
-        print("Finished")
-        print(board)
-        exit()
+    if is_board_full(board):
         return board
 
     # Check if cursor is at a blank state
@@ -23,18 +19,19 @@ def backtracking(board, index):
 
             # Check if valid
             if check_valid(board, (row_index, column_index)):
-                print("{} Valid".format(num))
                 # Valid, move to next box
                 board = backtracking(board, get_next_index(index))
 
+                # Break loop if puzzle is solved
+                if is_board_full(board):
+                    break
+
             else:
-                print("{} Not valid".format(num))
                 # Not valid
                 if num == 9:
                     # Every possible number not valid
                     # Perform backtrack
                     board[row_index, column_index] = BLANK_STATE
-                    print("Backtrack")
                     return board
     else:
         # Not blank state, default values
