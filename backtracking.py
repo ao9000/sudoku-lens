@@ -4,41 +4,48 @@ import math
 BLANK_STATE = 0
 
 
-def backtracking(board, index=(0, 0)):
+def backtracking(board, index=(0, 0), step=1):
+    # Unpack
     row_index, column_index = index
 
+    # Check if passed the last box
     if is_board_full(board):
-        return board
+        return board, step-1
 
     # Check if cursor is at a blank state
     if board[row_index, column_index] == BLANK_STATE:
         # Blank state
         # Assign number to box
-        for num in range(1, 10):
-            board[row_index, column_index] = num
-
-            # Check if valid
-            if check_valid(board, (row_index, column_index)):
-                # Valid, move to next box
-                board = backtracking(board, get_next_index(index))
-
-                # Break loop if puzzle is solved
-                if is_board_full(board):
-                    break
+        for num in range(1, 11):
+            if num == 10:
+                # Every possible number not valid
+                # Perform backtrack
+                board[row_index, column_index] = BLANK_STATE
+                return board, step - 1
 
             else:
-                # Not valid
-                if num == 9:
-                    # Every possible number not valid
-                    # Perform backtrack
-                    board[row_index, column_index] = BLANK_STATE
-                    return board
+                # Assign
+                board[row_index, column_index] = num
+
+                # Check if valid
+                if check_valid(board, (row_index, column_index)):
+                    # Valid, move to next box
+                    board, step = backtracking(board, get_next_index(index), step+1)
+
+                    # Break loop if puzzle is solved
+                    if is_board_full(board):
+                        break
+
+                else:
+                    # Not valid but there is other possible values not tested
+                    continue
+
     else:
         # Not blank state, default values
         # Shifting to next box
-        board = backtracking(board, get_next_index(index))
+        board, step = backtracking(board, get_next_index(index), step)
 
-    return board
+    return board, step
 
 
 def check_valid(board, index):
