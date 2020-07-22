@@ -9,6 +9,54 @@ import numpy as np
 BLANK_STATE = 0
 
 
+# Invalid puzzles, no solutions
+@pytest.fixture
+def invalid_puzzles():
+    # Duplicate in box
+    invalid1 = np.array([
+        [BLANK_STATE, BLANK_STATE, 9, BLANK_STATE, 7, BLANK_STATE, BLANK_STATE, BLANK_STATE, 5],
+        [BLANK_STATE, BLANK_STATE, 2, 1, BLANK_STATE, BLANK_STATE, 9, BLANK_STATE, BLANK_STATE],
+        [1, BLANK_STATE, BLANK_STATE, BLANK_STATE, 2, 8, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, 7, BLANK_STATE, BLANK_STATE, BLANK_STATE, 5, BLANK_STATE, BLANK_STATE, 1],
+        [BLANK_STATE, BLANK_STATE, 8, 5, 1, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, 5, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 3, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 3, BLANK_STATE, BLANK_STATE, 6],
+        [8, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [2, 1, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 8, 7]
+    ])
+
+    # Duplicate in column
+    invalid2 = np.array([
+        [6, BLANK_STATE, 1, 5, 9, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, 9, BLANK_STATE, BLANK_STATE, 1, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 4],
+        [BLANK_STATE, 7, BLANK_STATE, 3, 1, 4, BLANK_STATE, BLANK_STATE, 6],
+        [BLANK_STATE, 2, 4, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 5],
+        [BLANK_STATE, BLANK_STATE, 3, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 1, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, 6, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 3],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, 9, BLANK_STATE, 2, BLANK_STATE, 4, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 1, 6, BLANK_STATE, BLANK_STATE]
+    ])
+
+    # Duplicate in row
+    invalid3 = np.array([
+        [BLANK_STATE, 4, BLANK_STATE, 1, BLANK_STATE, BLANK_STATE, 3, 5, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE,
+         BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, 2, BLANK_STATE, 5, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, BLANK_STATE, BLANK_STATE, 4, BLANK_STATE, 8, 9, BLANK_STATE, BLANK_STATE],
+        [2, 6, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 1, 2],
+        [BLANK_STATE, 5, BLANK_STATE, 3, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 7],
+        [BLANK_STATE, BLANK_STATE, 4, BLANK_STATE, BLANK_STATE, BLANK_STATE, 1, 6, BLANK_STATE],
+        [6, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 7, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+        [BLANK_STATE, 1, BLANK_STATE, BLANK_STATE, 8, BLANK_STATE, BLANK_STATE, 2, BLANK_STATE]
+    ])
+
+    invalid_puzzles = [invalid1, invalid2, invalid3]
+
+    return invalid_puzzles
+
+
 # Easy puzzles
 @pytest.fixture
 def easy_puzzles():
@@ -62,6 +110,7 @@ def easy_puzzles():
     return easy_puzzles, easy_puzzles_solutions
 
 
+# Intermediate puzzles
 @pytest.fixture
 def intermediate_puzzles():
     intermediate1 = np.array([
@@ -94,6 +143,7 @@ def intermediate_puzzles():
     return intermediate_puzzles, intermediate_puzzles_solutions
 
 
+# Difficult puzzles
 @pytest.fixture
 def difficult_puzzles():
     difficult1 = np.array([
@@ -151,6 +201,7 @@ def difficult_puzzles():
     return difficult_puzzles, difficult_puzzles_solutions
 
 
+# Not fun puzzles
 @pytest.fixture
 def not_fun_puzzles():
     not_fun1 = np.array([
