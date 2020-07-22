@@ -53,6 +53,36 @@ def easy_puzzles():
                                [8, 7, 3, 5, 1, 2, 9, 6, 4]])
 
     easy_puzzles = [easy1, easy2]
-    easy_puzzles_solution = np.array([easy1_solution, easy2_solution])
+    easy_puzzles_solutions = np.array([easy1_solution, easy2_solution])
 
-    return easy_puzzles, easy_puzzles_solution
+    return easy_puzzles, easy_puzzles_solutions
+
+
+@pytest.fixture
+def intermediate_puzzles():
+    intermediate1 = np.array([[BLANK_STATE, 2, BLANK_STATE, 6, BLANK_STATE, 8, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+                              [5, 8, BLANK_STATE, BLANK_STATE, BLANK_STATE, 9, 7, BLANK_STATE, BLANK_STATE],
+                              [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 4, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+                              [3, 7, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 5, BLANK_STATE, BLANK_STATE],
+                              [6, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 4],
+                              [BLANK_STATE, BLANK_STATE, 8, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 1, 3],
+                              [BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE, 2, BLANK_STATE, BLANK_STATE, BLANK_STATE, BLANK_STATE],
+                              [BLANK_STATE, BLANK_STATE, 9, 8, BLANK_STATE, BLANK_STATE, BLANK_STATE, 3, 6],
+                              [BLANK_STATE, BLANK_STATE, BLANK_STATE, 3, BLANK_STATE, 6, BLANK_STATE, 9, BLANK_STATE]
+                              ])
+
+    intermediate1_solution = np.array([[1, 2, 3, 6, 7, 8, 9, 4, 5],
+                                       [5, 8, 4, 2, 3, 9, 7, 6, 1],
+                                       [9, 6, 7, 1, 4, 5, 3, 2, 8],
+                                       [3, 7, 2, 4, 6, 1, 5, 8, 9],
+                                       [6, 9, 1, 5, 8, 3, 2, 7, 4],
+                                       [4, 5, 8, 7, 9, 2, 6, 1, 3],
+                                       [8, 3, 6, 9, 2, 4, 1, 5, 7],
+                                       [2, 1, 9, 8, 5, 7, 4, 3, 6],
+                                       [7, 4, 5, 3, 1, 6, 8, 9, 2]
+                                       ])
+
+    intermediate_puzzles = [intermediate1]
+    intermediate_puzzles_solutions = [intermediate1_solution]
+
+    return intermediate_puzzles, intermediate_puzzles_solutions
