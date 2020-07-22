@@ -1,5 +1,5 @@
 from backtracking import backtracking
-from tests.puzzles import easy_puzzles, intermediate_puzzles
+from tests.puzzles import easy_puzzles, intermediate_puzzles, difficult_puzzles
 
 
 def test_easy_puzzles(easy_puzzles):
@@ -16,6 +16,17 @@ def test_easy_puzzles(easy_puzzles):
 def test_intermediate_puzzles(intermediate_puzzles):
     # Unpack
     puzzles, solutions = intermediate_puzzles
+
+    for puzzle, solution in zip(puzzles, solutions):
+        solved, step = backtracking(puzzle)
+
+        assert (solved == solution).all()
+        assert step != 0
+
+
+def test_difficult_puzzles(difficult_puzzles):
+    # Unpack
+    puzzles, solutions = difficult_puzzles
 
     for puzzle, solution in zip(puzzles, solutions):
         solved, step = backtracking(puzzle)
