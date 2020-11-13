@@ -17,51 +17,56 @@ def extract_grid(image):
 
     # Contour detection, assuming grid is the biggest contour in the image
     cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # Sort from descending order
-    cnt = sorted(cnts, key=lambda x: cv2.contourArea(x), reverse=True)[0]
 
-    # Use contours to transform grid into "Top down view/bird's eye view
-    # Find perimeter
-    peri = cv2.arcLength(cnt, True)
-    # Find corners
-    approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
+    # Sort from descending order & loop
+    for cnt in sorted(cnts, key=lambda x: cv2.contourArea(x), reverse=True):
+        # Use contours to transform grid into "Top down view/bird's eye view
+        # Find perimeter
+        peri = cv2.arcLength(cnt, True)
+        # Find corners
+        approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
 
-    # Unpack & Identify corners
-    corners = sorted([(corner[0][0], corner[0][1]) for corner in approx], key=lambda x: x[0], reverse=False)
-    top_corners, bottom_corners = corners[:-2], corners[2:]
-    top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
-    top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
+        # Filter only square/rect for grid
+        if len(approx) == 4:
+            # Unpack & Identify corners
+            corners = sorted([(corner[0][0], corner[0][1]) for corner in approx], key=lambda x: x[0], reverse=False)
+            top_corners, bottom_corners = corners[:-2], corners[2:]
+            top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
+            top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
 
-    # Calculate the Euclidean distance for top & bottom width
-    top_width = np.sqrt(((top_right[0] - top_left[0]) ** 2) + ((top_right[1] - top_left[1]) ** 2))
-    bottom_width = np.sqrt(((bottom_right[0] - bottom_left[0]) ** 2) + ((bottom_right[1] - bottom_left[1]) ** 2))
-    # Select the max of both
-    new_width = int(max(top_width, bottom_width))
+            # Calculate the Euclidean distance for top & bottom width
+            top_width = np.sqrt(((top_right[0] - top_left[0]) ** 2) + ((top_right[1] - top_left[1]) ** 2))
+            bottom_width = np.sqrt(((bottom_right[0] - bottom_left[0]) ** 2) + ((bottom_right[1] - bottom_left[1]) ** 2))
+            # Select the max of both
+            new_width = int(max(top_width, bottom_width))
 
-    # Calculate the Euclidean distance for left & right height
-    left_height = np.sqrt(((bottom_left[0] - top_left[0]) ** 2) + ((bottom_left[1] - top_left[1]) ** 2))
-    right_height = np.sqrt(((bottom_right[0] - top_right[0]) ** 2) + ((bottom_right[1] - top_right[1]) ** 2))
-    # Select the max of both
-    new_height = int(max(left_height, right_height))
+            # Calculate the Euclidean distance for left & right height
+            left_height = np.sqrt(((bottom_left[0] - top_left[0]) ** 2) + ((bottom_left[1] - top_left[1]) ** 2))
+            right_height = np.sqrt(((bottom_right[0] - top_right[0]) ** 2) + ((bottom_right[1] - top_right[1]) ** 2))
+            # Select the max of both
+            new_height = int(max(left_height, right_height))
 
-    # Construct the new image frame dimensions
-    # [0, 0] - Top left
-    # [new_width - 1, 0] - Top right
-    # [new_width - 1, new_height - 1] - Bottom right
-    # [0, new_height - 1] - Bottom left
-    new_dimensions = np.array([
-        [0, 0],
-        [new_width - 1, 0],
-        [new_width - 1, new_height - 1],
-        [0, new_height - 1]],
-        dtype="float32")
+            # Construct the new image frame dimensions
+            # [0, 0] - Top left
+            # [new_width - 1, 0] - Top right
+            # [new_width - 1, new_height - 1] - Bottom right
+            # [0, new_height - 1] - Bottom left
+            new_dimensions = np.array([
+                [0, 0],
+                [new_width - 1, 0],
+                [new_width - 1, new_height - 1],
+                [0, new_height - 1]],
+                dtype="float32")
 
-    map_matrix = cv2.getPerspectiveTransform(np.array((top_left, top_right, bottom_right, bottom_left), dtype="float32"), new_dimensions)
+            map_matrix = cv2.getPerspectiveTransform(np.array((top_left, top_right, bottom_right, bottom_left), dtype="float32"), new_dimensions)
 
-    # Apply perspective wrap using provided matrix
-    grid = cv2.warpPerspective(image, map_matrix, (new_width, new_height))
+            # Apply perspective wrap using provided matrix
+            grid = cv2.warpPerspective(image, map_matrix, (new_width, new_height))
 
-    return grid
+            return grid
+
+    # Unable to find grid
+    return None
 
 
 def filter_non_square_contours(cnts):
