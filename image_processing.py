@@ -26,9 +26,11 @@ def extract_grid(image):
     # Find corners
     approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
 
-    # Identify corners
-    corners = [(corner[0][0], corner[0][1]) for corner in approx]
-    top_left, bottom_left, bottom_right, top_right = corners[0], corners[1], corners[2], corners[3]
+    # Unpack & Identify corners
+    corners = sorted([(corner[0][0], corner[0][1]) for corner in approx], key=lambda x: x[0], reverse=False)
+    top_corners, bottom_corners = corners[:-2], corners[2:]
+    top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
+    top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
 
     # Calculate the Euclidean distance for top & bottom width
     top_width = np.sqrt(((top_right[0] - top_left[0]) ** 2) + ((top_right[1] - top_left[1]) ** 2))
