@@ -1,26 +1,7 @@
 import numpy as np
-from backtracking import backtracking
 import cv2
 import math
 from imutils import contours
-
-
-def create_board():
-    # Create a blank Sudoku board
-    board = np.zeros((9, 9), dtype=int)
-
-    # Sample Board config
-    board[0] = [0, 0, 0, 2, 6, 0, 7, 0, 1]
-    board[1] = [6, 8, 0, 0, 7, 0, 0, 9, 0]
-    board[2] = [1, 9, 0, 0, 0, 4, 5, 0, 0]
-    board[3] = [8, 2, 0, 1, 0, 0, 0, 4, 0]
-    board[4] = [0, 0, 4, 6, 0, 2, 9, 0, 0]
-    board[5] = [0, 5, 0, 0, 0, 3, 0, 2, 8]
-    board[6] = [0, 0, 9, 3, 0, 0, 0, 7, 4]
-    board[7] = [0, 4, 0, 0, 5, 0, 0, 3, 6]
-    board[8] = [7, 0, 3, 0, 1, 8, 0, 0, 0]
-
-    return board
 
 
 def extract_grid(image):
@@ -156,48 +137,3 @@ def reduce_noise(grid):
     thresh = cv2.bitwise_not(thresh)
 
     return thresh
-
-
-def main():
-    # Load image
-    image = cv2.imread(filename="images/test2.jpg", flags=cv2.IMREAD_COLOR)
-
-    # Extract grid
-    grid = extract_grid(image)
-
-    # Image preprocessing, reduce noise such as numbers/dots, cover all numbers
-    thresh = reduce_noise(grid)
-
-    # Contour detection again, this time we are extracting the grid
-    cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Filter out non square contours
-    cnts = filter_non_square_contours(cnts)
-
-    # Do a check if grid is fully extracted, no missing, no duplicates etc
-    print(len(cnts))
-    if len(cnts) == 81:
-        # Sort grid into nested list format
-        grid_contours = sort_grid_contours(cnts)
-
-        print("Detected")
-
-        for row_index, row in enumerate(grid_contours):
-            for box_index, box in enumerate(row):
-                x, y, width, height = cv2.boundingRect(box)
-                roi = grid[y:y + height, x:x + width]
-                cv2.imwrite(f"digits_classifier/test/test7[{row_index}][{box_index}].png", roi)
-
-    else:
-        print("Not detected")
-        for cnt in cnts:
-            cv2.drawContours(image, [cnt], -1, (0, 0, 0), 10)
-            # Show image
-            grid = cv2.resize(image, (600, 600))
-            cv2.imshow("grid", grid)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    main()
