@@ -39,8 +39,7 @@ for file in os.listdir(test_directory):
                 digit = digit.reshape((1, 28, 28, 1))
 
                 # Make prediction
-                # prediction = np.argmax(model.predict(digit_norm), axis=-1)[0]
-                prediction = model.predict_classes(digit)[0]+1
+                prediction = np.argmax(model.predict(digit), axis=-1)[0]+1
 
                 # Record score
                 y_true.append(str(file))
