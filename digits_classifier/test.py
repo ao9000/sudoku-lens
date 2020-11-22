@@ -1,7 +1,6 @@
 import tensorflow as tf
-from keras.preprocessing.image import load_img, img_to_array
+from keras.preprocessing.image import load_img
 import numpy as np
-import PIL
 from helper_functions import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score
 import os
