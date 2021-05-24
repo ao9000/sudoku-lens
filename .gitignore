@@ -3,3 +3,4 @@
 *.pytest_cache
 *images
 digits_classifier/test
+*cells

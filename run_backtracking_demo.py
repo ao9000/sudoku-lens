@@ -10,10 +10,17 @@ def draw_puzzle(board):
 
     # Second, draw sudoku lines
     for num in range(1, 9):
-        # Horizontal
-        cv2.line(board_image, (0, (600//9)*num), (600, (600//9)*num), (255, 255, 255), 3)
-        # Vertical
-        cv2.line(board_image, ((600 // 9) * num, 0), ((600 // 9) * num, 600), (255, 255, 255), 3)
+        if num % 3:
+            # Horizontal
+            cv2.line(board_image, (0, (600//9)*num), (600, (600//9)*num), (255, 255, 255), 2)
+            # Vertical
+            cv2.line(board_image, ((600 // 9) * num, 0), ((600 // 9) * num, 600), (255, 255, 255), 2)
+        else:
+            # Every 3rd line draw line with more thickness
+            # Horizontal
+            cv2.line(board_image, (0, (600//9)*num), (600, (600//9)*num), (255, 255, 255), 5)
+            # Vertical
+            cv2.line(board_image, ((600 // 9) * num, 0), ((600 // 9) * num, 600), (255, 255, 255), 5)
 
     # Third, draw number in board
     for row in range(0, 9):
