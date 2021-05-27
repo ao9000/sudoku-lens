@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, MaxPool2D, Dropout
 from keras.optimizers import SGD
 from keras.utils import to_categorical
 import matplotlib.pyplot as plt
@@ -57,7 +57,7 @@ def preprocess_train_label(label):
 def sudoku_cells_reduce_noise(digit_inv):
     # Eliminate surrounding noise
     # Detect contours
-    cnts, hierarchy = cv2.findContours(digit_inv, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cnts, hierarchy = cv2.findContours(digit_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Filter contours over 5 pixel square area
     cnts = [cnt for cnt in cnts if cv2.contourArea(cnt) > 5]
@@ -69,21 +69,33 @@ def sudoku_cells_reduce_noise(digit_inv):
         # Get coordinates, width, height of contour
         x, y, width, height = cv2.boundingRect(cnt)
 
+        # Create buffer for crop
+        crop_buffer = 2
         # Crop area
-        digit_inv = digit_inv[y:y + height, x:x + width]
+        digit_inv = digit_inv[y-crop_buffer:y + height+crop_buffer, x-crop_buffer:x + width+crop_buffer]
+        # Update height & width
+        height = height + (crop_buffer*2)
+        width = width + (crop_buffer*2)
 
         # Create a black mat
         new_digit_inv = np.zeros((28, 28), np.uint8)
 
-        # if Digit is too small, enlarge it
-        if cv2.contourArea(cnt) < 25:
-            # Maintain aspect ratio
-            aspect_ratio = 15 / float(height)
-            new_dimensions = (int(width * aspect_ratio), 15)
-            digit_inv = cv2.resize(digit_inv, new_dimensions, interpolation=cv2.INTER_NEAREST)
+        # Standardize all image sizes
+        # Maintain aspect ratio, resize via height
+        resized_target_height = 19
+        aspect_ratio = resized_target_height / float(height)
+        new_dimensions = (int(width * aspect_ratio), resized_target_height)
 
-            # Update width & height
-            height, width = digit_inv.shape
+        # Check if original image is larger is smaller
+        if height > resized_target_height:
+            # Shrink
+            digit_inv = cv2.resize(digit_inv, new_dimensions, interpolation=cv2.INTER_AREA)
+        else:
+            # Expand
+            digit_inv = cv2.resize(digit_inv, new_dimensions, interpolation=cv2.INTER_CUBIC)
+
+        # Update width & height
+        height, width = digit_inv.shape
 
         # Paste detected contour in the middle to center image
         new_digit_inv[14-height//2:14-height//2+height, 14-width//2:14-width//2+width] = digit_inv
@@ -108,6 +120,7 @@ def build_model():
     # compile model
     opt = SGD(lr=0.01, momentum=0.9)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    print(model.summary())
     return model
 
 

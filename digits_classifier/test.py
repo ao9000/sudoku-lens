@@ -21,18 +21,17 @@ for file in os.listdir(test_directory):
     if os.path.isdir(os.path.join(test_directory, file)):
         for image in os.listdir(os.path.join(test_directory, file)):
             # Load testing image
-            digit = load_img(os.path.join(test_directory, file, image), color_mode="grayscale", target_size=(28, 28, 1),
-                             interpolation="nearest")
+            digit = load_img(os.path.join(test_directory, file, image), color_mode="grayscale")
 
             # Preprocess image
             # Convert image into np array
             digit = np.asarray(digit)
 
             # Image thresholding & invert image
-            digit = cv2.adaptiveThreshold(digit, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
+            digit_inv = cv2.adaptiveThreshold(digit, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
 
             # Remove surrounding noise
-            digit = sudoku_cells_reduce_noise(digit)
+            digit = sudoku_cells_reduce_noise(digit_inv)
 
             if digit is not None:
                 # Reshape to fit model input
@@ -40,6 +39,9 @@ for file in os.listdir(test_directory):
 
                 # Make prediction
                 prediction = np.argmax(model.predict(digit), axis=-1)[0]+1
+
+                if str(file) != str(prediction):
+                    cv2.imwrite(f"fails/{image} Predicted:{prediction}.jpg", digit.reshape((28,28,1)))
 
                 # Record score
                 y_true.append(str(file))
