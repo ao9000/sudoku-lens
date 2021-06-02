@@ -1,9 +1,11 @@
-import numpy as np
-
 BLANK_STATE = 0
 
 
-def backtracking(board):
+def create_empty_board():
+    return [[BLANK_STATE] * 9 for _ in range(0, 9)]
+
+
+def backtracking(board, step=1):
     index = get_next_index(board)
 
     # Check if index was found
@@ -19,17 +21,18 @@ def backtracking(board):
                 board[row_index][column_index] = num
 
                 # Move on to next available cell
-                board = backtracking(board)
+                board, step = backtracking(board, step+1)
 
                 # Check if puzzle is solved
                 if not get_next_index(board):
-                    return board
+                    return board, step
 
+        # Perform backtracking
         board[row_index][column_index] = 0
-        return board
+        return board, step-1
     else:
         # No empty cell, meaning puzzle has been completed
-        return board
+        return board, step-1
 
 
 def get_next_index(board):
@@ -61,21 +64,3 @@ def check_valid(board, index, cell_value):
         return False
 
     return True
-
-
-board = [
-[1, 2, 3, 4, 0, 0, 5, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0, 0],
-[6, 0, 0, 0, 7, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 3, 0, 0],
-[0, 0, 0, 0, 8, 0, 0, 0, 0],
-[8, 0, 0, 0, 0, 0, 0, 0, 7],
-[0, 0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 5, 0, 0, 0, 0, 0]
-]
-
-
-print(backtracking(board))
-print(board)
-print("DONE")

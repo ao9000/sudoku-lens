@@ -4,7 +4,7 @@ import math
 from imutils import contours
 
 
-def extract_grid(image):
+def get_grid_dimensions(image):
     # Reduce noise
     # Convert image to greyscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -34,39 +34,48 @@ def extract_grid(image):
             top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
             top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
 
-            # Calculate the Euclidean distance for top & bottom width
-            top_width = np.sqrt(((top_right[0] - top_left[0]) ** 2) + ((top_right[1] - top_left[1]) ** 2))
-            bottom_width = np.sqrt(((bottom_right[0] - bottom_left[0]) ** 2) + ((bottom_right[1] - bottom_left[1]) ** 2))
-            # Select the max of both
-            new_width = int(max(top_width, bottom_width))
-
-            # Calculate the Euclidean distance for left & right height
-            left_height = np.sqrt(((bottom_left[0] - top_left[0]) ** 2) + ((bottom_left[1] - top_left[1]) ** 2))
-            right_height = np.sqrt(((bottom_right[0] - top_right[0]) ** 2) + ((bottom_right[1] - top_right[1]) ** 2))
-            # Select the max of both
-            new_height = int(max(left_height, right_height))
-
-            # Construct the new image frame dimensions
-            # [0, 0] - Top left
-            # [new_width - 1, 0] - Top right
-            # [new_width - 1, new_height - 1] - Bottom right
-            # [0, new_height - 1] - Bottom left
-            new_dimensions = np.array([
-                [0, 0],
-                [new_width - 1, 0],
-                [new_width - 1, new_height - 1],
-                [0, new_height - 1]],
-                dtype="float32")
-
-            map_matrix = cv2.getPerspectiveTransform(np.array((top_left, top_right, bottom_right, bottom_left), dtype="float32"), new_dimensions)
-
-            # Apply perspective wrap using provided matrix
-            grid = cv2.warpPerspective(image, map_matrix, (new_width, new_height))
-
-            return grid
+            # Return detected grid dimensions
+            return top_left, top_right, bottom_right, bottom_left
 
     # Unable to find grid
     return None
+
+
+def transform_grid(image, grid_coordinates):
+    # Unpack
+    top_left, top_right, bottom_right, bottom_left = grid_coordinates
+
+    # Calculate the Euclidean distance for top & bottom width
+    top_width = np.sqrt(((top_right[0] - top_left[0]) ** 2) + ((top_right[1] - top_left[1]) ** 2))
+    bottom_width = np.sqrt(((bottom_right[0] - bottom_left[0]) ** 2) + ((bottom_right[1] - bottom_left[1]) ** 2))
+    # Select the max of both
+    new_width = int(max(top_width, bottom_width))
+
+    # Calculate the Euclidean distance for left & right height
+    left_height = np.sqrt(((bottom_left[0] - top_left[0]) ** 2) + ((bottom_left[1] - top_left[1]) ** 2))
+    right_height = np.sqrt(((bottom_right[0] - top_right[0]) ** 2) + ((bottom_right[1] - top_right[1]) ** 2))
+    # Select the max of both
+    new_height = int(max(left_height, right_height))
+
+    # Construct the new image frame dimensions
+    # [0, 0] - Top left
+    # [new_width - 1, 0] - Top right
+    # [new_width - 1, new_height - 1] - Bottom right
+    # [0, new_height - 1] - Bottom left
+    new_dimensions = np.array([
+        [0, 0],
+        [new_width - 1, 0],
+        [new_width - 1, new_height - 1],
+        [0, new_height - 1]],
+        dtype="float32")
+
+    map_matrix = cv2.getPerspectiveTransform(
+        np.array((top_left, top_right, bottom_right, bottom_left), dtype="float32"), new_dimensions)
+
+    # Apply perspective wrap using provided matrix
+    grid = cv2.warpPerspective(image, map_matrix, (new_width, new_height))
+
+    return grid
 
 
 def filter_non_square_contours(cnts):

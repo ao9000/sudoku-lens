@@ -1,27 +1,36 @@
 import cv2
 import os
-from image_processing import extract_grid, filter_non_square_contours, sort_grid_contours, reduce_noise
+from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid
 from digits_classifier.helper_functions import sudoku_cells_reduce_noise
 import tensorflow as tf
-from backtracking import backtracking
+from backtracking import backtracking, create_empty_board, BLANK_STATE
 import numpy as np
 import copy
+import imutils
 
 
 def main():
     # Load trained model
     model = tf.keras.models.load_model('digits_classifier/models/model.h5')
 
-    image_directory = "images"
+    image_directory = "images/unsolved"
     for file_name in os.listdir(image_directory):
         # Load image
         image = cv2.imread(filename=os.path.join(image_directory, file_name), flags=cv2.IMREAD_COLOR)
 
+        # Check if image is too big
+        # If so, Standardise image size
+        if image.shape[1] > 700:
+            image = imutils.resize(image, width=700)
+
         # Extract grid
-        grid = extract_grid(image)
+        grid_coordinates = get_grid_dimensions(image)
 
         # Check if grid is found
-        if grid is not None:
+        if grid_coordinates is not None:
+            # Crop grid with transformation
+            grid = transform_grid(image, grid_coordinates)
+
             # Image preprocessing, reduce noise such as numbers/dots, cover all numbers
             thresh = reduce_noise(grid)
 
@@ -31,30 +40,31 @@ def main():
             # Filter out non square contours
             cnts = filter_non_square_contours(cnts)
 
+            # Convert contours into data to work with
             # Do a check if grid is fully extracted, no missing, no duplicates etc
             if len(cnts) == 81:
-                # Sort grid into nested list format
+                # Sort grid into nested list format same as sudoku
                 grid_contours = sort_grid_contours(cnts)
 
                 # Create a blank Sudoku board
-                board = np.zeros((9, 9), dtype=int)
+                board = create_empty_board()
+
                 # Run digit classifier
                 for row_index, row in enumerate(grid_contours):
                     for box_index, box in enumerate(row):
-                        # Extract ROI from contour
+
+                        # Extract cell ROI from contour
                         x, y, width, height = cv2.boundingRect(box)
                         roi = grid[y:y + height, x:x + width]
 
-                        # Convert to greyscale & resize
+                        # Convert to greyscale
                         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-                        roi = cv2.resize(roi, (28,28), interpolation=cv2.INTER_NEAREST)
 
                         # Image thresholding & invert image
-                        digit = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27,
-                                                      11)
+                        digit_inv = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
 
                         # Remove surrounding noise
-                        digit = sudoku_cells_reduce_noise(digit)
+                        digit = sudoku_cells_reduce_noise(digit_inv)
 
                         # Digit present
                         if digit is not None:
@@ -64,36 +74,54 @@ def main():
                             # Make prediction
                             board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0]+1
 
-                # Perform backtracking
+                # Perform backtracking to solve detected puzzle
                 solved_board, steps = backtracking(copy.deepcopy(board))
 
-                print(f"{file_name}: Detected")
-
-                # Check if valid puzzle
+                # Check if puzzle is valid
                 if steps:
                     # Solved
-                    print("Original")
-                    print(board)
+                    # Draw answers on the sudoku image
+                    for row_index, row in enumerate(board):
+                        for box_index, box in enumerate(row):
+                            # Filter for BLANK_STATES
+                            if box == BLANK_STATE:
+                                x, y, width, height = cv2.boundingRect(grid_contours[row_index][box_index])
 
-                    print(f"Solved in {steps} steps")
-                    print(solved_board)
+                                # Calculate font size
+                                for num in np.arange(1.0, 10.0, 0.1):
+                                    text_size = cv2.getTextSize(str(solved_board[row_index][box_index]),
+                                                                fontFace=cv2.FONT_HERSHEY_DUPLEX,
+                                                                fontScale=num, thickness=2)
 
+                                    font_size = num
+                                    if text_size[0][0] > width//2 or text_size[0][1] > height//2:
+                                        break
+
+                                # Fill in answers in sudoku image
+                                cv2.putText(image, str(solved_board[row_index][box_index]),
+                                            (x+grid_coordinates[0][0]+(width * 1//4),
+                                             y+grid_coordinates[0][1]+(height * 3//4)),
+                                            cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
+
+                    # Fill in information at bottom left
+                    cv2.putText(image, f"Solved in {steps} steps",
+                                (0, image.shape[0]), cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
+
+                    # Save answers in solved directory
+                    cv2.imwrite(f"images/solved/{os.path.splitext(file_name)[0]}.png", image)
+
+                    print(f"File: {file_name}, Solved in {steps} steps")
                 else:
                     # Cannot be solved (Wrong/invalid puzzle)
-                    print("Cannot be solved")
-
-                # # Uncomment to save cells ROI
-                # for row_index, row in enumerate(grid_contours):
-                #     for box_index, box in enumerate(row):
-                #         x, y, width, height = cv2.boundingRect(box)
-                #         roi = grid[y:y + height, x:x + width]
-                #         cv2.imwrite(f"digits_classifier/test/{file_name}[{row_index}][{box_index}].png", roi)
-
+                    # Reasons can be invalid puzzle or grid/digits detected wrongly
+                    print(f"File: {file_name}, Invalid puzzle or digit detection error")
             else:
-                print(f"{file_name}: Not detected")
+                # Unable to tally 81 boxes
+                print(f"File: {file_name}: Unable to detect 81 cells in grid")
 
         else:
-            print("No Grid was found")
+            # Fail to detect grid
+            print(f"File: {file_name}, Unable to detect grid")
 
 
 if __name__ == '__main__':

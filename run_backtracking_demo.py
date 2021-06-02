@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
-from backtracking import backtracking
+from backtracking import backtracking, create_empty_board, BLANK_STATE
+from copy import deepcopy
 
 
 def draw_puzzle(board):
@@ -26,15 +27,15 @@ def draw_puzzle(board):
     for row in range(0, 9):
         for col in range(0, 9):
             # Check if cell is not a blank state (0)
-            if board[row, col]:
-                cv2.putText(board_image, str(board[row, col]), ((600//9)*col+(600//27), (600//9)*row+(600//14)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            if board[row][col] != BLANK_STATE:
+                cv2.putText(board_image, str(board[row][col]), ((600//9)*col+(600//27), (600//9)*row+(600//14)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 
     return board_image
 
 
 def main():
     # Create a blank Sudoku board
-    board = np.zeros((9, 9), dtype=int)
+    board = create_empty_board()
 
     # Sample Board config
     board[0] = [0, 0, 0, 2, 6, 0, 7, 0, 1]
@@ -46,14 +47,19 @@ def main():
     board[6] = [0, 0, 9, 3, 0, 0, 0, 7, 4]
     board[7] = [0, 4, 0, 0, 5, 0, 0, 3, 6]
     board[8] = [7, 0, 3, 0, 1, 8, 0, 0, 0]
-    
+
+    solved_board, steps = backtracking(deepcopy(board))
+
     # Show unsolved puzzle
     cv2.imshow("Unsolved", draw_puzzle(board))
     cv2.waitKey(0)
 
-    # Show solved puzzle
-    cv2.imshow("Solved", draw_puzzle(backtracking(board)[0]))
-    cv2.waitKey(0)
+    if steps:
+        # Show solved puzzle
+        cv2.imshow(f"Solved in {steps} steps", draw_puzzle(solved_board))
+        cv2.waitKey(0)
+    else:
+        print("Invalid puzzle")
 
     # Close all windows
     cv2.destroyAllWindows()

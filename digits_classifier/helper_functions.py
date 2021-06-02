@@ -70,7 +70,14 @@ def sudoku_cells_reduce_noise(digit_inv):
         x, y, width, height = cv2.boundingRect(cnt)
 
         # Create buffer for crop
-        crop_buffer = 2
+        crop_buffer = 1
+        # Decrement crop buffer if buffer goes out of bounds of image
+        while (y-crop_buffer) < 0 or (x-crop_buffer) < 0 or (y+height+crop_buffer) > digit_inv.shape[0] or (x+width+crop_buffer) > digit_inv.shape[1]:
+            crop_buffer -= 1
+
+            if crop_buffer == 0:
+                break
+
         # Crop area
         digit_inv = digit_inv[y-crop_buffer:y + height+crop_buffer, x-crop_buffer:x + width+crop_buffer]
         # Update height & width
@@ -82,7 +89,7 @@ def sudoku_cells_reduce_noise(digit_inv):
 
         # Standardize all image sizes
         # Maintain aspect ratio, resize via height
-        resized_target_height = 19
+        resized_target_height = 17
         aspect_ratio = resized_target_height / float(height)
         new_dimensions = (int(width * aspect_ratio), resized_target_height)
 

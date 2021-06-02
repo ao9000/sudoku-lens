@@ -16,7 +16,7 @@ y_test = preprocess_train_label(y_test)
 model = build_model()
 
 # Train the model
-history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=20, batch_size=32)
+history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=32)
 
 # Save model to disk
 model.save("models/model.h5")

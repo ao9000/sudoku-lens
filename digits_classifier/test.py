@@ -40,8 +40,9 @@ for file in os.listdir(test_directory):
                 # Make prediction
                 prediction = np.argmax(model.predict(digit), axis=-1)[0]+1
 
+                # Save fail detections
                 if str(file) != str(prediction):
-                    cv2.imwrite(f"fails/{image} Predicted:{prediction}.jpg", digit.reshape((28,28,1)))
+                    cv2.imwrite(f"fails/{image} Predicted:{prediction}.png", digit.reshape((28,28,1)))
 
                 # Record score
                 y_true.append(str(file))
@@ -50,5 +51,6 @@ for file in os.listdir(test_directory):
                 print(f'Predicted:{prediction}, Actual:{file}')
 
 # Print final scores
+print(f"Total images: {len(y_pred)}")
 print(accuracy_score(y_true, y_pred))
 print(confusion_matrix(y_true, y_pred))

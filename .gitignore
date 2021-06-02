@@ -2,5 +2,7 @@
 *__pycache__
 *.pytest_cache
 *images
-digits_classifier/test
+*digits_classifier/test
 *cells
+*digits_classifier/fails
+*models

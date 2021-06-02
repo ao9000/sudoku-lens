@@ -1,19 +1,22 @@
 import cv2
 import os
-from image_processing import extract_grid, filter_non_square_contours, sort_grid_contours, reduce_noise
+from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise
 
 
 def main():
-    image_directory = "images"
+    image_directory = "images/unsolved"
     for file_name in os.listdir(image_directory):
         # Load image
         image = cv2.imread(filename=os.path.join(image_directory, file_name), flags=cv2.IMREAD_COLOR)
 
         # Extract grid
-        grid = extract_grid(image)
+        grid_coordinates = get_grid_dimensions(image)
 
         # Check if grid is found
-        if grid is not None:
+        if grid_coordinates is not None:
+            # Crop grid with transformation
+            grid = transform_grid(image, grid_coordinates)
+
             # Get grid dimensions
             grid_height, grid_width = grid.shape[:2]
             grid_area = grid_width * grid_height
