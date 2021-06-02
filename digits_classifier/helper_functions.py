@@ -1,7 +1,7 @@
-from keras.models import Sequential
-from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, MaxPool2D, Dropout
-from keras.optimizers import SGD
-from keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, MaxPool2D, Dropout
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 import numpy as np
