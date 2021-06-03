@@ -4,29 +4,35 @@ This project is the implementation of the sudoku solver using OpenCV, Tensorflow
 ## Screenshots
 ### run_backtracking_demo.py
 Backtracking before and after
+
 ![run_backtracking_demo.py](media/backtracking-demo-unsolved.png?raw=true "Unsolved board")
 ![run_backtracking_demo.py](media/backtracking-demo-solved.png?raw=true "Solved board")
 
 ### run_grid_extraction.py
 Using OpenCV to detect sudoku grid and cells
+
 ![run_grid_extraction.py](media/grid-extractor-demo-original.png?raw=true "Original image")
 ![run_grid_extraction.py](media/grid-extractor-demo-extracted.png?raw=true "Extracted grid cells")
 
 ### run_cell_extraction.py
 After cell detection, extract cells to prepare them for testing data
+
 ![run_cell_extraction.py](media/cell-extraction-results.png?raw=true "Extracted cells")
 
 
 ### digit-classifier/train.py
 Using handwritten mnist dataset to train a simple deep learning model to classify digits
+
 ![digit-classifier/train.py](media/digit-classifier-train.png?raw=true "Training a digit classifier model")
 
 ### digit-classifier/test.py
 Evaluating the trained model using the test dataset
+
 ![digit-classifier/test.py](media/digit-classifier-test.png?raw=true "Evaluate the classifier")
 
 ### run_sudoku_solver.py
 Using all the above techniques, solve a raw sudoku image
+
 ![run_sudoku_solver.py](media/unsolved_puzzle.jpg?raw=true "Sample unsolved sudoku image")
 ![run_sudoku_solver.py](media/solved_puzzle.png?raw=true "Solved sudoku image")
 
