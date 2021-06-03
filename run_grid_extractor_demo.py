@@ -1,9 +1,18 @@
+"""
+    Shows how the grid cells recognition of a sudoku puzzle is done
+"""
+
+
 import cv2
 import os
 from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise
 
 
 def main():
+    """
+    Loops through all unsolved sudoku puzzle to perform grid cell extraction
+    Showing which images are successful or unsuccessful and their extracted contours
+    """
     # Initialize recording variables
     extracted = 0
     cell_error = 0

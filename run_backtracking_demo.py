@@ -1,3 +1,8 @@
+"""
+    Uses backtracking to obtain the fastest solution to a given valid sudoku puzzle
+"""
+
+
 import numpy as np
 import cv2
 from backtracking import backtracking, create_empty_board, BLANK_STATE
@@ -5,6 +10,20 @@ from copy import deepcopy
 
 
 def draw_puzzle(board):
+    """
+    Renders the sudoku puzzle using OpenCV
+
+    Renders:
+    1. 9 vertical lines
+    2. 9 horizontal lines
+    3. Cell values
+
+    :param board: type: list
+    9x9 nested list simulating the sudoku board
+
+    :return: type: numpy.ndarray
+    Image of the rendered sudoku puzzle
+    """
     # Draw board
     # First, create a black mat image
     board_image = np.zeros((600, 600), np.uint8)
@@ -34,6 +53,11 @@ def draw_puzzle(board):
 
 
 def main():
+    """
+    Shows how backtracking is applied
+    Renders the unsolved and solution of the given sudoku puzzle
+    """
+
     # Create a blank Sudoku board
     board = create_empty_board()
 

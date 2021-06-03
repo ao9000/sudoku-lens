@@ -1,5 +1,9 @@
+"""
+    Evaluates the accuracy score of the model on the different test images ranging from digits 1-9
+"""
+
 import tensorflow as tf
-from keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import load_img
 import numpy as np
 from helper_functions import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score

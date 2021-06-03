@@ -1,3 +1,7 @@
+"""
+    Contains helper functions for the training and evaluating of the model
+"""
+
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, MaxPool2D, Dropout
 from tensorflow.keras.optimizers import SGD
@@ -10,6 +14,12 @@ import cv2
 
 
 def get_mnist_dataset():
+    """
+    Gets the mnist dataset and modifies the dataset by removing digit 0 images and labels since we will not be needing it
+
+    :return: type: tuple of lists
+    Returns the tuple of lists for images and labels for training the validation sets
+    """
     # Load MNIST dataset dataset
     # 60,000 28x28 grayscale Train images of the 10 digits, 10,000 Test images
     # x_train -> images in numpy array, y_train -> corresponding labels
@@ -35,6 +45,19 @@ def get_mnist_dataset():
 
 
 def preprocess_train_dataset(data):
+    """
+    Prepares the training dataset for model training
+
+    Process:
+    1. Reshapes the images the required size for model ingestion
+    2. Normalize the pixel values to allow the model to train faster
+
+    :param data: type: numpy.ndarray
+    Training images
+
+    :return: type: numpy.ndarray
+    Preprocessed training images
+    """
     # Reshape to be samples*pixels*width*height & convert images into single channel
     data = data.reshape((data.shape[0], 28, 28, 1))
 
@@ -47,6 +70,15 @@ def preprocess_train_dataset(data):
 
 
 def preprocess_train_label(label):
+    """
+    Preprocess the training labels for model ingestion
+
+    :param label: type: numpy.ndarray
+    Training labels of the respective images
+
+    :return: type: numpy.ndarray
+    Preprocessed training labels
+    """
     # One hot Code
     # Converts a class vector (integers) to binary class matrix
     label = to_categorical(label - 1, 9)
@@ -55,6 +87,24 @@ def preprocess_train_label(label):
 
 
 def sudoku_cells_reduce_noise(digit_inv):
+    """
+    Noises in the cell images can impact the accuracy of the model
+    Perform some image preprocessing on the extracted cell digits images to improve accuracy
+
+    Process:
+    1. Detect contour of the digit in the cell
+    2. Filter the contours over5 pixels area
+    3. Get the largest contour (Assuming the largest contour is the digit)
+    4. Crop the digit
+    5. Resize the digit to a standard size
+    6. Create a black mat and paste the cropped digit onto it
+
+    :param digit_inv: type: numpy.ndarray
+    Binary image of the detected cell
+
+    :return: type: numpy.ndarray
+    Binary image of the digit after noise reduction
+    """
     # Eliminate surrounding noise
     # Detect contours
     cnts, hierarchy = cv2.findContours(digit_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -114,6 +164,13 @@ def sudoku_cells_reduce_noise(digit_inv):
 
 
 def build_model():
+    """
+    Builds a model for digit classification
+    Reference: https://machinelearningmastery.com/how-to-develop-a-convolutional-neural-network-from-scratch-for-mnist-handwritten-digit-classification/
+
+    :return: type: tensorflow.python.keras.engine.sequential.Sequential
+    The model used for digit classification
+    """
     # Build the CNN Model for digit classification purposes
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=(28, 28, 1)))
@@ -132,6 +189,13 @@ def build_model():
 
 
 def plot_accuracy_graph(history):
+    """
+    Plot the model accuracy graph across epochs during training
+    And save as image
+
+    :param history: type: tensorflow.python.keras.callbacks.History
+    History object for the training progress records
+    """
     # Set x axis to 1 step
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MultipleLocator(base=1.0))
@@ -151,6 +215,13 @@ def plot_accuracy_graph(history):
 
 
 def plot_loss_graph(history):
+    """
+    Plot the model loss graph across epochs during training
+    And save as image
+
+    :param history: type: tensorflow.python.keras.callbacks.History
+    History object for the training progress records
+    """
     # Set x axis to 1 step
     fig, ax = plt.subplots()
     ax.xaxis.set_major_locator(MultipleLocator(base=1.0))

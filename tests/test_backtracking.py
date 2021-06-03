@@ -1,3 +1,15 @@
+"""
+    Test cases to validify if the backtracking algorithm is working as intended
+
+    Test includes:
+    1. Invalid cases (Algorithm should return 0 steps
+    2. Easy puzzles
+    3. Intermediate puzzles
+    4. Difficult puzzles
+    5. Not fun puzzles
+"""
+
+
 from backtracking import backtracking
 from tests.puzzles import easy_puzzles, intermediate_puzzles, difficult_puzzles, not_fun_puzzles, invalid_puzzles
 

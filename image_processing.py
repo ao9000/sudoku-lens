@@ -1,3 +1,8 @@
+"""
+    Contains the helper function for extracting the sudoku grid from the given raw image
+"""
+
+
 import numpy as np
 import cv2
 import math
@@ -5,6 +10,23 @@ from imutils import contours
 
 
 def get_grid_dimensions(image):
+    """
+    Tries to locate the grid dimension from a raw image
+
+    Process:
+    1. Converts the given image into greyscale
+    2. Apply gaussian blur to smooth the image
+    3. Apply thresholding to obtain a inverted binary image (Lines will be white while background will be black)
+    4. Apply contour detection and sort the contours from largest to smallest
+    5. Loop and filter the contour. Finding the largest and square contour (Assume the largest square contour will be the grid)
+    6. Returns the grid dimensions
+
+    :param image: type: numpy.ndarray
+    The raw sudoku image in color format
+
+    :return: type: tuple if grid is found, else None
+    Returns the grid coordinates in top left, top right, bottom right, bottom left order. If no grid is found, returns None
+    """
     # Reduce noise
     # Convert image to greyscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -42,6 +64,23 @@ def get_grid_dimensions(image):
 
 
 def transform_grid(image, grid_coordinates):
+    """
+    Crops the detected grid and transforms it to reduce noise.
+
+    Process:
+    1. Calculates the Euclidean distance of the grid to have a perfect cropping without losing any information
+    2. Performs perspective wrap to correct images with skewing
+
+    :param image: type: numpy.ndarray
+    The raw sudoku image in color format
+
+    :param grid_coordinates: type: tuple
+    Grid coordinates in top left, top right, bottom right, bottom left order
+
+    :return: type: numpy.ndarray
+    Transformed grid
+    """
+
     # Unpack
     top_left, top_right, bottom_right, bottom_left = grid_coordinates
 
@@ -79,6 +118,15 @@ def transform_grid(image, grid_coordinates):
 
 
 def filter_non_square_contours(cnts):
+    """
+    Filters the contour list to remove contours that are not square shaped
+
+    :param cnts: type: list
+    List of contours detected
+
+    :return: type: list
+    Filtered list of contour
+    """
     # Define temp list
     square_indexes = []
 
@@ -107,6 +155,17 @@ def filter_non_square_contours(cnts):
 
 
 def sort_grid_contours(cnts):
+    """
+    Sorts the list of contours based on their location on the image (Top to bottom then left to right)
+    Then constructs the 9x9 nested list simulating the sudoku board and appends appends the contours into the list
+
+    :param cnts: type: list
+    List of contours detected
+
+    :return: type: list
+    9x9 nested list containing contour information for each cell
+    """
+
     grid_contours = [[] for _ in range(0, 9)]
 
     # Sort contours (From top to bottom and left to right)
@@ -123,6 +182,26 @@ def sort_grid_contours(cnts):
 
 
 def reduce_noise(grid):
+    """
+    Prepare the grid for contour detection
+    The goal is to reduce as much noise on the grid so that we are able to detect 81 cells perfectly
+
+    Process:
+    1. Convert input grid into greyscale
+    2. Perform contour detection to obtain binary image (White lines, black background)
+    3. Detect contour to get the bounding boxes for all the grid cells
+    4. Filter the contour for small contours
+    5. Cover up the digits on the cells to reduce noise
+    6. Perform closing to strengthen the cell boarders for easier contour detection
+    7. Invert the image back to normal
+
+    :param grid: type: numpy.ndarray
+    The image of the cropped and transformed grid
+
+    :return: type: type: numpy.ndarray
+    The image of the cropped and transformed grid after noise reduction
+    """
+
     # Convert image to greyscale
     gray = cv2.cvtColor(grid, cv2.COLOR_BGR2GRAY)
 

@@ -1,9 +1,19 @@
+"""
+    Extract cell images from puzzles
+    To ensure data quality, additional manual filtering of false positives may be needed
+    Purpose of this script is to generate a training dataset for the digit classifier
+"""
+
+
 import cv2
 import os
 from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise
 
 
 def main():
+    """
+    Loops through all unsolved puzzle images to extract all grid cells and save them in a directory defined
+    """
     image_directory = "images/unsolved"
     for file_name in os.listdir(image_directory):
         # Load image

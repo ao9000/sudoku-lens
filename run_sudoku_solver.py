@@ -1,3 +1,9 @@
+"""
+    Runs the whole pipeline of grid extraction, cell extraction, digit classification to backtracking
+
+    Takes a unsolved sudoku puzzle image and outputs a solved sudoku puzzle image
+"""
+
 import cv2
 import os
 from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid
@@ -10,6 +16,12 @@ import imutils
 
 
 def main():
+    """
+    Loops through all unsolved sudoku puzzle images, and perform all operations from grid extraction, cell extraction,
+    digit classification to backtracking to find the solution of the puzzle
+
+    Once a solution is found, renders the answers on the unsolved sudoku image
+    """
     # Load trained model
     model = tf.keras.models.load_model('digits_classifier/models/model.h5')
 
@@ -19,7 +31,8 @@ def main():
         image = cv2.imread(filename=os.path.join(image_directory, file_name), flags=cv2.IMREAD_COLOR)
 
         # Check if image is too big
-        # If so, Standardise image size
+        # If so, Standardise image size to avoid error in cell image manipulation
+        # Cells must fit in 28x28 for the model, big images will exceed this threshold with aspect ratio resize
         if image.shape[1] > 700:
             image = imutils.resize(image, width=700)
 

@@ -1,3 +1,7 @@
+"""
+    Training script to train the model used for the digit classifier
+"""
+
 from helper_functions import build_model, plot_accuracy_graph, plot_loss_graph, preprocess_train_dataset, preprocess_train_label, get_mnist_dataset
 
 # Load MNIST dataset dataset without 0 data
