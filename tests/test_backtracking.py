@@ -1,66 +1,32 @@
-"""
-    Test cases to validify if the backtracking algorithm is working as intended
-
-    Test includes:
-    1. Invalid cases (Algorithm should return 0 steps
-    2. Easy puzzles
-    3. Intermediate puzzles
-    4. Difficult puzzles
-    5. Not fun puzzles
-"""
-
-
+from tests.puzzles import puzzle_kaggle, puzzle_17clue, puzzle_forum_hardest, puzzle_gen_invalid
 from backtracking import backtracking
-from tests.puzzles import easy_puzzles, intermediate_puzzles, difficult_puzzles, not_fun_puzzles, invalid_puzzles
+BLANK_STATE = 0
 
 
-def test_invalid_puzzles(invalid_puzzles):
-    for puzzle in invalid_puzzles:
+def test_puzzle_gen_invalid(puzzle_gen_invalid):
+    for puzzle in puzzle_gen_invalid[:10]:
         solved, step = backtracking(puzzle)
 
-        assert (solved == puzzle).all()
         assert step == 0
+        assert solved == puzzle
 
 
-def test_easy_puzzles(easy_puzzles):
-    # Unpack
-    puzzles, solutions = easy_puzzles
-
-    for puzzle, solution in zip(puzzles, solutions):
+def test_puzzle_kaggle(puzzle_kaggle):
+    for puzzle in puzzle_kaggle[:10]:
         solved, step = backtracking(puzzle)
 
-        assert (solved == solution).all()
-        assert step != 0
+        assert step != 0 and not any(BLANK_STATE in row for row in solved)
 
 
-def test_intermediate_puzzles(intermediate_puzzles):
-    # Unpack
-    puzzles, solutions = intermediate_puzzles
-
-    for puzzle, solution in zip(puzzles, solutions):
+def test_puzzle_17clue(puzzle_17clue):
+    for puzzle in puzzle_17clue[:10]:
         solved, step = backtracking(puzzle)
 
-        assert (solved == solution).all()
-        assert step != 0
+        assert step != 0 and not any(BLANK_STATE in row for row in solved)
 
 
-def test_difficult_puzzles(difficult_puzzles):
-    # Unpack
-    puzzles, solutions = difficult_puzzles
-
-    for puzzle, solution in zip(puzzles, solutions):
+def test_puzzle_forum_hardest(puzzle_forum_hardest):
+    for puzzle in puzzle_forum_hardest[:10]:
         solved, step = backtracking(puzzle)
 
-        assert (solved == solution).all()
-        assert step != 0
-
-
-def test_not_fun_puzzles(not_fun_puzzles):
-    # Unpack
-    puzzles, solutions = not_fun_puzzles
-
-    for puzzle, solution in zip(puzzles, solutions):
-        solved, step = backtracking(puzzle)
-
-        assert (solved == solution).all()
-        assert step != 0
+        assert step != 0 and not any(BLANK_STATE in row for row in solved)
