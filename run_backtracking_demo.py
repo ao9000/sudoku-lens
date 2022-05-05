@@ -5,7 +5,9 @@
 
 import numpy as np
 import cv2
-from backtracking import backtracking, create_empty_board, BLANK_STATE
+import random, timeit
+from backtracking import backtracking, create_empty_board, BLANK_STATE, check_valid
+from backtracking_mcv import backtracking_constraint
 from copy import deepcopy
 
 
@@ -84,13 +86,23 @@ def main():
 
     # Removing Completed 5 and 6 causing issues for most_constraint
 
-    solved_board, steps = backtracking(deepcopy(board))
-
+    board = generate_random_puzzle(21)
     
+    mostconstraint_time_start = timeit.default_timer()
+    solved_board, steps = backtracking_constraint(deepcopy(board))
+    mostconstraint_time_end = timeit.default_timer()
+
+    backtracking_time_start = timeit.default_timer()
+    solved_board, steps = backtracking(deepcopy(board))
+    backtracking_time_end = timeit.default_timer()
+
     print_board(board)
 
     print("Solved in " + str(steps))
     print_board(solved_board)
+
+    print ("Backtracking Time:", backtracking_time_end-backtracking_time_start)
+    print ("Constraint Time:", mostconstraint_time_end-mostconstraint_time_start)
     if False:
         # Show unsolved puzzle
         cv2.imshow("Unsolved", draw_puzzle(board))
@@ -105,6 +117,27 @@ def main():
 
         # Close all windows
         cv2.destroyAllWindows()
+
+def generate_random_puzzle(val):
+    board = create_empty_board()
+    for i in range(0,val):
+        terminate = 0
+        while terminate < 100:
+            row = random.randint(0,8)
+            col = random.randint(0,8)
+            if (board[row][col] == BLANK_STATE):
+                values = [*range(1,10)]
+                while len(values) > 0:
+                    randVal = random.choice(values)
+                    if (check_valid(board, (row, col) , randVal)):
+                        board[row][col] = randVal
+                        break
+                    values.remove(randVal)
+                break
+
+
+
+    return board
 
 def print_board(board):
     for row in range(9):

@@ -1,5 +1,6 @@
 from tests.puzzles import puzzle_kaggle, puzzle_17clue, puzzle_forum_hardest, puzzle_gen_invalid
-from backtracking import backtracking
+# from backtracking import backtracking
+from backtracking_mcv import backtracking_constraint as backtracking
 import time
 from statistics import fmean
 BLANK_STATE = 0
