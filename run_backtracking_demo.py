@@ -72,22 +72,45 @@ def main():
     board[7] = [0, 4, 0, 0, 5, 0, 0, 3, 6]
     board[8] = [7, 0, 3, 0, 1, 8, 0, 0, 0]
 
+    # board[0] = [0, 0, 0, 2, 6, 0, 7, 0, 1]
+    # board[1] = [6, 8, 0, 0, 7, 0, 0, 9, 0]
+    # board[2] = [1, 9, 0, 0, 0, 4, 5, 0, 0]
+    # board[3] = [8, 2, 0, 1, 0, 0, 0, 4, 0]
+    # board[4] = [0, 0, 4, 6, 0, 2, 9, 0, 0]
+    # board[5] = [0, 5, 0, 0, 0, 3, 0, 2, 8]
+    # board[6] = [5 , 1 , 9 , 3 , 2 , 6 , 8 , 7 , 4]
+    # board[7] = [0, 4, 0, 0, 5, 0, 0, 3, 6]
+    # board[8] = [7, 0, 3, 0, 1, 8, 0, 0, 0]
+
+    # Removing Completed 5 and 6 causing issues for most_constraint
+
     solved_board, steps = backtracking(deepcopy(board))
 
-    # Show unsolved puzzle
-    cv2.imshow("Unsolved", draw_puzzle(board))
-    cv2.waitKey(0)
+    
+    print_board(board)
 
-    if steps:
-        # Show solved puzzle
-        cv2.imshow(f"Solved in {steps} steps", draw_puzzle(solved_board))
+    print("Solved in " + str(steps))
+    print_board(solved_board)
+    if False:
+        # Show unsolved puzzle
+        cv2.imshow("Unsolved", draw_puzzle(board))
         cv2.waitKey(0)
-    else:
-        print("Invalid puzzle")
 
-    # Close all windows
-    cv2.destroyAllWindows()
+        if steps:
+            # Show solved puzzle
+            cv2.imshow(f"Solved in {steps} steps", draw_puzzle(solved_board))
+            cv2.waitKey(0)
+        else:
+            print("Invalid puzzle")
 
+        # Close all windows
+        cv2.destroyAllWindows()
+
+def print_board(board):
+    for row in range(9):
+        for col in range(9):
+            print(str(board[row][col]) + " , ", end="")
+        print("")
 
 if __name__ == '__main__':
     main()
