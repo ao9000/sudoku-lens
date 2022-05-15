@@ -1,5 +1,5 @@
 from tests.puzzles import puzzle_kaggle, puzzle_17clue, puzzle_forum_hardest, puzzle_gen_invalid
-from backtracking import backtracking
+from constraint_satisfaction_problem import csp
 import time
 from statistics import fmean
 BLANK_STATE = 0
@@ -12,7 +12,7 @@ def test_puzzle_gen_invalid(puzzle_gen_invalid):
 
     for puzzle in puzzle_gen_invalid[:TEST_SIZE]:
         start_time = time.time()
-        solved, step = backtracking(puzzle)
+        solved, step = csp(puzzle)
         time_taken = time.time() - start_time
 
         print(f"Time taken: {time_taken:.6f}")
@@ -29,7 +29,7 @@ def test_puzzle_kaggle(puzzle_kaggle):
 
     for puzzle in puzzle_kaggle[:TEST_SIZE]:
         start_time = time.time()
-        solved, step = backtracking(puzzle)
+        solved, step = csp(puzzle)
         time_taken = time.time() - start_time
 
         print(f"Time taken: {time_taken:.6f}")
@@ -46,7 +46,7 @@ def test_puzzle_17clue(puzzle_17clue):
 
     for puzzle in puzzle_17clue[:TEST_SIZE]:
         start_time = time.time()
-        solved, step = backtracking(puzzle)
+        solved, step = csp(puzzle)
         time_taken = time.time() - start_time
 
         print(f"Time taken: {time_taken:.6f}")
@@ -63,7 +63,7 @@ def test_puzzle_forum_hardest(puzzle_forum_hardest):
 
     for puzzle in puzzle_forum_hardest[:TEST_SIZE]:
         start_time = time.time()
-        solved, step = backtracking(puzzle)
+        solved, step = csp(puzzle)
         time_taken = time.time() - start_time
 
         print(f"Time taken: {time_taken:.6f}")
