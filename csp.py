@@ -1,4 +1,5 @@
 import itertools
+from copy import deepcopy
 
 BLANK_STATE = 0
 
@@ -133,9 +134,7 @@ def update_possible_matrix(possible, row_index, column_index, value):
 
     return possible
 
-# Most Constrained Variable (MCV) also called Minimum Remaining Values (MRV)
 
-from copy import deepcopy
 def csp(board, possible=None, step=1):
     if not possible:
         # First time, generate possible values matrix
