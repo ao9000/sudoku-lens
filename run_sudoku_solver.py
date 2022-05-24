@@ -1,7 +1,7 @@
 """
     Runs the whole pipeline of grid extraction, cell extraction, digit classification to backtracking
 
-    Takes a unsolved sudoku puzzle image and outputs a solved sudoku puzzle image
+    Takes an unsolved sudoku puzzle image and outputs a solved sudoku puzzle image
 """
 
 import cv2
@@ -9,7 +9,8 @@ import os
 from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid
 from digits_classifier.helper_functions import sudoku_cells_reduce_noise
 import tensorflow as tf
-from backtracking import backtracking, create_empty_board, BLANK_STATE
+from csp import csp, create_empty_board, BLANK_STATE
+from backtracking import backtracking
 import numpy as np
 import copy
 import imutils
@@ -87,8 +88,15 @@ def main():
                             # Make prediction
                             board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0]+1
 
-                # Perform backtracking to solve detected puzzle
-                solved_board, steps = backtracking(copy.deepcopy(board))
+                # Perform backtracking/CSP to solve detected puzzle
+                # If smaller amount of digits provided, use backtracking
+                # Else CSP is faster
+                if sum(cell.count(BLANK_STATE) for cell in board) > 70:
+                    # Backtracking, more than 70/81 blanks
+                    solved_board, steps = backtracking(copy.deepcopy(board))
+                else:
+                    # CSP, less than 70/81 blanks
+                    solved_board, steps = csp(copy.deepcopy(board))
 
                 # Check if puzzle is valid
                 if steps:
