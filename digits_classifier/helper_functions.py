@@ -138,13 +138,20 @@ def sudoku_cells_reduce_noise(digit_inv):
         new_digit_inv = np.zeros((28, 28), np.uint8)
 
         # Standardize all image sizes
-        # Maintain aspect ratio, resize via height
-        resized_target_height = 17
-        aspect_ratio = resized_target_height / float(height)
-        new_dimensions = (int(width * aspect_ratio), resized_target_height)
+        # Maintain aspect ratio, resize via height or width (Whichever is bigger)
+        resized_target_height_width = 17
+
+        if height > width:
+            # Height is larger
+            aspect_ratio = resized_target_height_width / float(height)
+            new_dimensions = (int(width * aspect_ratio), resized_target_height_width)
+        else:
+            # Width is larger
+            aspect_ratio = resized_target_height_width / float(width)
+            new_dimensions = (resized_target_height_width, int(height * aspect_ratio))
 
         # Check if original image is larger is smaller
-        if height > resized_target_height:
+        if height > resized_target_height_width:
             # Shrink
             digit_inv = cv2.resize(digit_inv, new_dimensions, interpolation=cv2.INTER_AREA)
         else:
