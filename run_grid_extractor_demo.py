@@ -76,9 +76,9 @@ def main():
             grid_error += 1
 
     # Print grid extraction results
-    print(f"\nDetected successfully: {extracted}/{len(dir_obj)}")
-    print(f"Unable to extract grid cells properly: {cell_error}")
-    print(f"Unable to detect grid: {grid_error}")
+    print(f"\nDetected successfully: {extracted}/{(dir_obj_len := len(dir_obj))}")
+    print(f"Unable to extract grid cells properly: {cell_error}/{dir_obj_len}")
+    print(f"Unable to detect grid: {grid_error}/{dir_obj_len}")
 
 
 if __name__ == '__main__':
