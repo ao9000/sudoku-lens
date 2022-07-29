@@ -48,16 +48,21 @@ def get_grid_dimensions(image):
         # Find corners
         approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
 
-        # Filter only square/rect for grid
-        if len(approx) == 4:
-            # Unpack & Identify corners
-            corners = sorted([(corner[0][0], corner[0][1]) for corner in approx], key=lambda x: x[0], reverse=False)
-            top_corners, bottom_corners = corners[:-2], corners[2:]
-            top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
-            top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
+        # Get area of contour
+        cnt_area = cv2.contourArea(cnt)
 
-            # Return detected grid dimensions
-            return top_left, top_right, bottom_right, bottom_left
+        # Filter only square/rect for grid
+        # Also filter for the grid to be at least 50% of the image size
+        if cnt_area >= 0.3 * (image.shape[0] * image.shape[1]):
+            if len(approx) == 4:
+                # Unpack & Identify corners
+                corners = sorted([(corner[0][0], corner[0][1]) for corner in approx], key=lambda x: x[0], reverse=False)
+                top_corners, bottom_corners = corners[:-2], corners[2:]
+                top_left, bottom_left = sorted(top_corners, key=lambda x: x[1], reverse=False)
+                top_right, bottom_right = sorted(bottom_corners, key=lambda x: x[1], reverse=False)
+
+                # Return detected grid dimensions
+                return top_left, top_right, bottom_right, bottom_left
 
     # Unable to find grid
     return None
@@ -232,3 +237,29 @@ def reduce_noise(grid):
     thresh = cv2.bitwise_not(thresh)
 
     return thresh
+
+
+def get_cells_from_9_main_cells(cnts):
+    # New cnts to store cleaned cnts
+    new_cnts = []
+
+    # Main cells extracted, split main cells to 81 cells
+    # Get individual main cell height and width for splitting
+    for cnt in cnts:
+        # Get bounding box for each contour
+        x, y, width, height = cv2.boundingRect(cnt)
+
+        # Calculate individual cell height and width
+        cell_height = height // 3
+        cell_width = width // 3
+
+        # Split contour into 9 cells
+        for row_num in range(1, 4):
+            for col_num in range(1, 4):
+                new_cnt = np.array([[(x + (cell_width * (col_num - 1)), y + (cell_height * (row_num - 1))),
+                                     (x + (cell_width * col_num), y + (cell_height * (row_num - 1))),
+                                     (x + (cell_width * col_num), y + (cell_height * row_num)),
+                                     (x + (cell_width * (col_num - 1)), y + (cell_height * row_num))]], dtype=np.int)
+                new_cnts.append(new_cnt)
+
+    return new_cnts

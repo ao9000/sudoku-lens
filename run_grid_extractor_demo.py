@@ -5,7 +5,8 @@
 
 import cv2
 import os
-from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise
+import numpy as np
+from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise, get_cells_from_9_main_cells
 
 
 def main():
@@ -41,8 +42,48 @@ def main():
             # Filter out non square contours
             cnts = filter_non_square_contours(cnts)
 
-            # Get len of cnts
-            cnts_len = len(cnts)
+            # Check how many valid cnts are found
+            if 9 <= (cnts_len := len(cnts)) <= 90:
+                # Salvageable
+                if cnts_len == 81:
+                    # All cells extracted, perfect
+                    print(f"File: {file_name}, All 81 cells detected")
+                    extracted += 1
+                elif cnts_len == 9:
+                    # Split main cells to 81 cells
+                    cnts = get_cells_from_9_main_cells(cnts)
+
+                    print(f"File: {file_name}, Main 9 cells detected")
+                    extracted += 1
+                else:
+                    new_cnts = []
+
+                    # In between, not sure if this is a valid grid
+                    # Sort hierarchy, toss small contours to find main cells
+                    # Only accept contours with hierarchy 0 (main contours)
+                    # Format of hierarchy: [next, previous, child, parent]
+                    for cnt, hie in zip(cnts, hierarchy[0]):
+                        # Check if parent is -1 (Does not exist)
+                        if hie[3] == -1:
+                            new_cnts.append(cnt)
+
+                    if len(new_cnts) == 9:
+                        # Got all main cells
+                        cnts = get_cells_from_9_main_cells(new_cnts)
+
+                        print(f"File: {file_name}, Main 9 cells detected, with some noise")
+                        extracted += 1
+                    else:
+                        # Unable to identify main cells
+                        print(f"File: {file_name}, Unable to extract grid cells properly")
+                        cell_error += 1
+
+                # Update contour len, in case any contour filtering/adjustment was made
+                cnts_len = len(cnts)
+            else:
+                # Unsalvageable
+                print(f"File: {file_name}, Unable to extract grid cells properly")
+                cell_error += 1
 
             # Display original image
             # Process image
@@ -64,13 +105,6 @@ def main():
 
             # Close all images
             cv2.destroyAllWindows()
-
-            if cnts_len == 81:
-                print(f"File: {file_name}, Extracted successfully")
-                extracted += 1
-            else:
-                print(f"File: {file_name}, Unable to extract grid cells properly")
-                cell_error += 1
         else:
             print(f"File: {file_name}, Unable to detect grid")
             grid_error += 1
