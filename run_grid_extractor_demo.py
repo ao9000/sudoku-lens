@@ -5,7 +5,7 @@
 
 import cv2
 import os
-import numpy as np
+import imutils
 from image_processing import get_grid_dimensions, filter_non_square_contours, transform_grid, reduce_noise, get_cells_from_9_main_cells
 
 
@@ -24,6 +24,12 @@ def main():
     for file_name in (dir_obj := os.listdir(image_directory)):
         # Load image
         image = cv2.imread(filename=os.path.join(image_directory, file_name), flags=cv2.IMREAD_COLOR)
+
+        # Check if image is too big
+        # If so, Standardise image size to avoid error in cell image manipulation
+        # Cells must fit in 28x28 for the model, big images will exceed this threshold with aspect ratio resize
+        if image.shape[1] > 700:
+            image = imutils.resize(image, width=700)
 
         # Extract grid
         grid_coordinates = get_grid_dimensions(image)
