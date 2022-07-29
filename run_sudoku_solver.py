@@ -6,7 +6,7 @@
 
 import cv2
 import os
-from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid
+from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid, get_cells_from_9_main_cells
 from digits_classifier.helper_functions import sudoku_cells_reduce_noise
 import tensorflow as tf
 from csp import csp, create_empty_board, BLANK_STATE
@@ -55,8 +55,40 @@ def main():
             cnts = filter_non_square_contours(cnts)
 
             # Convert contours into data to work with
-            # Do a check if grid is fully extracted, no missing, no duplicates etc
-            if len(cnts) == 81:
+            # Check how many valid cnts are found
+            if 9 <= (cnts_len := len(cnts)) <= 90:
+                # Salvageable
+                if cnts_len == 81:
+                    # All cells extracted, perfect
+                    pass
+                elif cnts_len == 9:
+                    # Split main cells to 81 cells
+                    cnts = get_cells_from_9_main_cells(cnts)
+                else:
+                    new_cnts = []
+
+                    # In between, not sure if this is a valid grid
+                    # Sort hierarchy, toss small contours to find main cells
+                    # Only accept contours with hierarchy 0 (main contours)
+                    # Format of hierarchy: [next, previous, child, parent]
+                    for cnt, hie in zip(cnts, hierarchy[0]):
+                        # Check if parent is -1 (Does not exist)
+                        if hie[3] == -1:
+                            new_cnts.append(cnt)
+
+                    if len(new_cnts) == 9:
+                        # Got all main cells
+                        cnts = get_cells_from_9_main_cells(new_cnts)
+                    else:
+                        # Unable to identify main cells
+                        print(f"File: {file_name}, Unable to extract grid cells properly")
+                        continue
+
+                # Finally
+                # Update contour len, in case any contour filtering/adjustment was made
+                cnts_len = len(cnts)
+
+                # Success detection of grid & cells
                 # Sort grid into nested list format same as sudoku
                 grid_contours = sort_grid_contours(cnts)
 
@@ -75,7 +107,8 @@ def main():
                         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
 
                         # Image thresholding & invert image
-                        digit_inv = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
+                        digit_inv = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                                          cv2.THRESH_BINARY_INV, 27, 11)
 
                         # Remove surrounding noise
                         digit = sudoku_cells_reduce_noise(digit_inv)
@@ -86,7 +119,7 @@ def main():
                             digit = digit.reshape((1, 28, 28, 1))
 
                             # Make prediction
-                            board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0]+1
+                            board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0] + 1
 
                 # Perform backtracking/CSP to solve detected puzzle
                 # If smaller amount of digits provided, use backtracking
@@ -115,13 +148,13 @@ def main():
                                                                 fontScale=num, thickness=2)
 
                                     font_size = num
-                                    if text_size[0][0] > width//2 or text_size[0][1] > height//2:
+                                    if text_size[0][0] > width // 2 or text_size[0][1] > height // 2:
                                         break
 
                                 # Fill in answers in sudoku image
                                 cv2.putText(image, str(solved_board[row_index][box_index]),
-                                            (x+grid_coordinates[0][0]+(width * 1//4),
-                                             y+grid_coordinates[0][1]+(height * 3//4)),
+                                            (x + grid_coordinates[0][0] + (width * 1 // 4),
+                                             y + grid_coordinates[0][1] + (height * 3 // 4)),
                                             cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
 
                     # Fill in information at bottom left
@@ -137,9 +170,8 @@ def main():
                     # Reasons can be invalid puzzle or grid/digits detected wrongly
                     print(f"File: {file_name}, Invalid puzzle or digit detection error")
             else:
-                # Unable to tally 81 boxes
-                print(f"File: {file_name}: Unable to detect 81 cells in grid")
-
+                # Unsalvageable
+                print(f"File: {file_name}, Unable to extract grid cells properly")
         else:
             # Fail to detect grid
             print(f"File: {file_name}, Unable to detect grid")
