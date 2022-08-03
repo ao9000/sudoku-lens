@@ -36,6 +36,11 @@ Using all the above techniques, solve a raw sudoku image
 ![run_sudoku_solver.py](media/unsolved_puzzle.jpg?raw=true "Sample unsolved sudoku image")
 ![run_sudoku_solver.py](media/solved_puzzle.png?raw=true "Solved sudoku image")
 
+### run_sudoku_solver_video.py
+Using all the above techniques, solve a sudoku puzzle via the webcam
+![run_sudoku_solver_video.py](media/sudoku_solver_webcam_video.gif?raw=true "Solved sudoku webcam video")
+
+
 ## Core framework/concepts used
 - Backtracking
 
@@ -89,13 +94,13 @@ pip install -r requirements.txt
 ```
 
 ### Assets
-You can download the assets that i have used at the following link
-https://drive.google.com/file/d/16VNkbgs-DNK7YlmFRN4my7bunQAbouqc/view?usp=sharing
+You can download the assets that I have used at the following link 
+https://drive.google.com/file/d/1rPlWneHApOp4R2KszLWzJoNvTsXC7FCu/view?usp=sharing
 
-The assets file contain:
+The assets file contains the following files:
 1. Model files
 2. Model test dataset that I have curated
-3. Sample unsolved and solved sudoku images 
+3. Sample unsolved and solved sudoku images
 
 ## Usage
 - Run backtracking demo
@@ -124,7 +129,7 @@ python run_grid_extractor_demo.py
 # Results will pop up
 ```
 
-- Run Sudoku solver
+- Run Sudoku solver (Images)
 ```
 # Make sure your in the root directory of the project
 mkdir images
@@ -135,6 +140,16 @@ mkdir images/solved
 python run_sudoku_solver.py
 
 # Results will be stored in images/solved directory
+```
+
+- Run Sudoku solver (Webcam/video)
+```
+# Make sure your in the root directory of the project
+# Be sure that your webcam is not being used by another application
+python run_sudoku_solver_video.py
+
+# When a valid sudoku board is detected, the screen capture will stop
+# Results will be displayed on the screen
 ```
 
 - Digit classifier, Run training
