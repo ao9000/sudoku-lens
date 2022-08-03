@@ -150,6 +150,13 @@ def sudoku_cells_reduce_noise(digit_inv):
             aspect_ratio = resized_target_height_width / float(width)
             new_dimensions = (resized_target_height_width, int(height * aspect_ratio))
 
+        # Don't allow any dimension to be 0, will result in error
+        while new_dimensions[0] < 3 or new_dimensions[1] < 3:
+            if new_dimensions[0] == 0:
+                new_dimensions = (3, new_dimensions[1])
+            elif new_dimensions[1] == 0:
+                new_dimensions = (new_dimensions[0], 3)
+
         # Check if original image is larger is smaller
         if height > resized_target_height_width:
             # Shrink
