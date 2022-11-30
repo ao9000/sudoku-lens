@@ -12,10 +12,10 @@ import cv2
 
 
 # Load trained model
-model = tf.keras.models.load_model('models/model.h5')
+model = tf.keras.models.load_model('digits_classifier/models/model.h5')
 
 # Define testing image filename
-test_directory = "test"
+test_directory = "digits_classifier/test"
 
 # Initialize lists to record score
 y_pred, y_true = [], []

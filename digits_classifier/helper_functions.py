@@ -20,7 +20,7 @@ def get_mnist_dataset():
     :return: type: tuple of lists
     Returns the tuple of lists for images and labels for training the validation sets
     """
-    # Load MNIST dataset dataset
+    # Load MNIST dataset
     # 60,000 28x28 grayscale Train images of the 10 digits, 10,000 Test images
     # x_train -> images in numpy array, y_train -> corresponding labels
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()

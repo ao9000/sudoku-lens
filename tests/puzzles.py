@@ -1,6 +1,6 @@
 """
     Benchmarking Sudoku Puzzles
-    Puzzles data retrieved from https://github.com/t-dillon/tdoku
+    Puzzles data retrieved from https://github.com/t-dillon/tdoku/blob/master/data.zip
 """
 
 import pytest
