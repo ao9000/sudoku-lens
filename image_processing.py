@@ -259,7 +259,7 @@ def get_cells_from_9_main_cells(cnts):
                 new_cnt = np.array([[(x + (cell_width * (col_num - 1)), y + (cell_height * (row_num - 1))),
                                      (x + (cell_width * col_num), y + (cell_height * (row_num - 1))),
                                      (x + (cell_width * col_num), y + (cell_height * row_num)),
-                                     (x + (cell_width * (col_num - 1)), y + (cell_height * row_num))]], dtype=np.int)
+                                     (x + (cell_width * (col_num - 1)), y + (cell_height * row_num))]], dtype=np.int32)
                 new_cnts.append(new_cnt)
 
     return new_cnts

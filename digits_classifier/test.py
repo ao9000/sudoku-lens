@@ -14,6 +14,9 @@ import cv2
 # Load trained model
 model = tf.keras.models.load_model('digits_classifier/models/model.h5')
 
+# Show the model architecture
+model.summary()
+
 # Define testing image filename
 test_directory = "digits_classifier/test"
 
