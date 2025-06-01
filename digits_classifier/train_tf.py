@@ -23,7 +23,7 @@ model = build_model()
 history = model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=10, batch_size=32)
 
 # Save model to disk
-model.save("digits_classifier/models/model.h5")
+model.save("digits_classifier/models/tf_cnn/model.h5")
 
 # Generate training graphs
 plot_accuracy_graph(history)

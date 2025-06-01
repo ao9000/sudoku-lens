@@ -3,15 +3,13 @@ import torch
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.init as init
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
-from helper_functions_tf import sudoku_cells_reduce_noise
+from digits_classifier import sudoku_cells_reduce_noise
 from PIL import Image
-import numpy as np
+from matplotlib.ticker import MultipleLocator
 
 
 def get_mnist_transform():
@@ -46,6 +44,9 @@ def get_mnist_dataset_loader(save_path, train, transform, batch_size):
 
 # Model definition
 class MNISTClassifier(nn.Module):
+    """
+    Source: https://nextjournal.com/gkoehler/pytorch-mnist
+    """
     def __init__(self):
         super(MNISTClassifier, self).__init__()
         self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -83,52 +84,6 @@ def build_model(optimizer_name, **kwargs):
         raise ValueError(f"Unsupported optimizer: {optimizer_name!r}. "f"Choose from 'adam', 'sgd', 'rmsprop'")
     return model, optimizer
 
-def plot_training_graph(history):
-    fig = plt.figure()
-    plt.plot(history['train_samples_seen'], history['train_loss'], color='blue')
-    plt.scatter(history['test_samples_seen'], history['test_loss'], color='red')
-    plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-    plt.xlabel('number of training examples seen')
-    plt.ylabel('negative log likelihood loss')
-
-    # Save plot (and close)
-    plt.savefig("models/train_loss.png")
-    plt.close(fig)
-
-def plot_test_graph(history):
-    x = history['test_samples_seen']
-    loss_y = history['test_loss']
-    acc_y = history['test_acc']
-
-    fig, ax1 = plt.subplots()
-
-    # Plot test loss on the left y-axis
-    color_loss = 'tab:blue'
-    ax1.set_xlabel('Number of Samples Seen')
-    ax1.set_ylabel('Test Loss', color=color_loss)
-    ax1.plot(x, loss_y, color=color_loss, marker='o', label='Test Loss')
-    ax1.tick_params(axis='y', labelcolor=color_loss)
-
-    # Create a second y-axis for accuracy
-    ax2 = ax1.twinx()
-    color_acc = 'tab:orange'
-    ax2.set_ylabel('Test Accuracy', color=color_acc)
-    ax2.plot(x, acc_y, color=color_acc, marker='s', label='Test Accuracy')
-    ax2.tick_params(axis='y', labelcolor=color_acc)
-    ax2.set_ylim(0, 1)  # Ensure the accuracy axis is between 0 and 1
-
-    # Title and legends
-    plt.title('Test Loss and Accuracy vs. Samples Seen')
-    fig.tight_layout()  # Prevent label overlap
-
-    # Show legend manually combining both axes
-    lines_loss, labels_loss = ax1.get_legend_handles_labels()
-    lines_acc, labels_acc = ax2.get_legend_handles_labels()
-    ax1.legend(lines_loss + lines_acc, labels_loss + labels_acc, loc='upper right')
-
-    plt.savefig("models/test_loss_acc.png")
-    plt.close(fig)
-
 
 def get_custom_test_dataset_loader(dataset_path, batch_size):
     def loader(img_path):
@@ -150,4 +105,48 @@ def get_custom_test_dataset_loader(dataset_path, batch_size):
                       shuffle=False,
                       pin_memory=True,
                       )
+
+
+def plot_accuracy_graph(history):
+    epochs = range(1, len(history['train_acc']) + 1)
+
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_locator(MultipleLocator(base=1.0))
+
+    # Plot each curve
+    plt.plot(epochs, history['train_acc'], label="Train Accuracy", color='blue')
+    plt.plot(epochs, history['mnist_test_acc'], label="Mnist Test Accuracy", color='orange')
+    plt.plot(epochs, history['sudoku_test_acc'], label="Sudoku Digits Test Accuracy", color='green')
+
+    # Labels, title, legend
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='upper left')
+
+    # Save figure to disk
+    plt.savefig("models/pt_cnn/accuracy.png")
+    plt.close(fig)
+
+
+def plot_loss_graph(history):
+    epochs = range(1, len(history['train_loss']) + 1)
+
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_locator(MultipleLocator(base=1.0))
+
+    # Plot each curve
+    plt.plot(epochs, history['train_loss'], label="Train Loss", color='blue')
+    plt.plot(epochs, history['mnist_test_loss'], label="Mnist Test Loss", color='orange')
+    plt.plot(epochs, history['sudoku_test_loss'], label="Custom Test Loss", color='green')
+
+    # Labels, title, legend
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(loc='upper left')
+
+    # Save figure to disk
+    plt.savefig("models/pt_cnn/loss.png")
+    plt.close(fig)
 

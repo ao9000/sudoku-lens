@@ -12,7 +12,7 @@ import cv2
 
 
 # Load trained model
-model = tf.keras.models.load_model('models/model.h5')
+model = tf.keras.models.load_model('models/tf_cnn/model.h5')
 
 # Show the model architecture
 model.summary()

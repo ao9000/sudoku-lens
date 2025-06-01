@@ -1,13 +1,12 @@
 import torch
 import torch.nn.functional as F
-from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_training_graph, plot_test_graph, get_mnist_transform, get_custom_test_dataset_loader
+from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_accuracy_graph, plot_loss_graph, get_mnist_transform, get_custom_test_dataset_loader
 from tqdm import tqdm
 
 
 # Constants
 train_epochs = 10
 batch_size=32
-log_batch_interval = 150
 
 random_seed = 42
 torch.backends.cudnn.enabled = False
@@ -34,8 +33,10 @@ print(model)
 history = {
     "train_loss": [],
     "train_acc": [],
-    "test_loss": [],
-    "test_acc": [],
+    "mnist_test_loss": [],
+    "mnist_test_acc": [],
+    "sudoku_test_loss": [], # My own test set
+    "sudoku_test_acc": [],
 }
 
 def train_one_epoch(model, optimizer, train_loader, epoch):
@@ -83,20 +84,20 @@ def train_one_epoch(model, optimizer, train_loader, epoch):
 
     # Logging
     # Print
-    print(f'Epoch: {epoch}, Train Acc: {epoch_acc:.4f}, Train Loss: {epoch_loss:.4f}')
+    print(f'Epoch: {epoch:>2d}, Train Acc: {epoch_acc:.4f}, Train Loss: {epoch_loss:.4f}')
     # Record stats
     history['train_loss'].append(epoch_loss)
     history['train_acc'].append(epoch_acc)
             
     # Checkpoint model weights & optimizer
-    torch.save(model.state_dict(), f'models/pt_cnn_model_epoch{epoch}.pth')
-    torch.save(optimizer.state_dict(), f'models/pt_cnn_optimizer_epoch{epoch}.pth')
+    torch.save(model.state_dict(), f'models/pt_cnn/model_epoch{epoch}.pth')
+    torch.save(optimizer.state_dict(), f'models/pt_cnn/optimizer_epoch{epoch}.pth')
 
 def test(model, test_loader):
     # Run one pass of samples in val_dataloader
     # Switch model to eval mode
     model.eval()
-
+    # Record stats
     running_loss = 0.0
     running_correct = 0
     total_samples = 0
@@ -125,22 +126,27 @@ def test(model, test_loader):
     # Print
     print(f"Epoch {epoch:>2d}, Test Acc: {epoch_acc:.4f}, Test Loss: {epoch_loss:.4f}")
 
-    # Record
-    history['test_loss'].append(epoch_loss)
-    history['test_acc'].append(epoch_acc)
+    # # Record
+    # history['test_loss'].append(epoch_loss)
+    # history['test_acc'].append(epoch_acc)
+    return epoch_loss, epoch_acc
 
 
-# Run training
-epoch=0
-test(model, val_loader)
-for epoch in range(1, train_epochs + 1):
-    train_one_epoch(model, optimizer, train_loader, epoch)
-    print("Mnist test set")
-    test(model, val_loader)
-    print("Custom test set")
-    test(model, get_custom_test_dataset_loader('test', 32))
+if __name__ == "__main__":
+    # Run training
+    for epoch in range(1, train_epochs+1):
+        train_one_epoch(model, optimizer, train_loader, epoch)
+        print("Mnist test set")
+        loss, acc = test(model, val_loader)
+        history['mnist_test_loss'].append(loss)
+        history['mnist_test_acc'].append(acc)
+        print("Sudoku digits test set")
+        loss, acc = test(model, get_custom_test_dataset_loader('test', batch_size))
+        history['sudoku_test_loss'].append(loss)
+        history['sudoku_test_acc'].append(acc)
 
-# Generate training graphs
-# plot_training_graph(history)
-# plot_test_graph(history)
+    # Generate training graphs
+    print("Saving graphs")
+    plot_accuracy_graph(history)
+    plot_loss_graph(history)
 
