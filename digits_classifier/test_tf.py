@@ -5,7 +5,7 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img
 import numpy as np
-from helper_functions_tf import sudoku_cells_reduce_noise
+from digits_classifier import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score
 import os
 import cv2

@@ -141,7 +141,7 @@ if __name__ == "__main__":
         history['mnist_test_loss'].append(loss)
         history['mnist_test_acc'].append(acc)
         print("Sudoku digits test set")
-        loss, acc = test(model, get_custom_test_dataset_loader('test', batch_size))
+        loss, acc = test(model, get_custom_test_dataset_loader('test', None, batch_size))
         history['sudoku_test_loss'].append(loss)
         history['sudoku_test_acc'].append(acc)
 

@@ -1,4 +1,4 @@
-from helper_functions_tf import sudoku_cells_reduce_noise
+from digits_classifier import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score
 import os
 import cv2
@@ -10,7 +10,7 @@ from PIL import Image
 # Load trained model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = MNISTClassifier().to(device)
-state_dict = torch.load("models/pt_cnn/model.pth", map_location=device)
+state_dict = torch.load("models/pt_cnn/model_epoch10.pth", map_location=device)
 model.load_state_dict(state_dict)
 model.eval()
 

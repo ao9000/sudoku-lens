@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import ImageFolder
 from digits_classifier import sudoku_cells_reduce_noise
 from PIL import Image
@@ -85,14 +85,17 @@ def build_model(optimizer_name, **kwargs):
     return model, optimizer
 
 
-def get_custom_test_dataset_loader(dataset_path, batch_size):
+def get_custom_test_dataset_loader(dataset_path, train, batch_size):
+    # train = true = 80% split
+    # train = false = 20% split
+    # train = None = 100% of the data
     def loader(img_path):
         img_gray = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         digit_inv = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
         denoised_digit = sudoku_cells_reduce_noise(digit_inv)
         if denoised_digit is not None:
             return Image.fromarray(denoised_digit)
-        return digit_inv
+        raise RuntimeError("Bad data")
 
     test_dataset = ImageFolder(
         root=dataset_path,
@@ -100,11 +103,34 @@ def get_custom_test_dataset_loader(dataset_path, batch_size):
         transform=get_mnist_transform(),
     )
 
-    return DataLoader(test_dataset,
-                      batch_size=batch_size,
-                      shuffle=False,
-                      pin_memory=True,
-                      )
+    # Calculate train test split if needed
+    if train is None:
+        # Return all data
+        return DataLoader(test_dataset,
+                          batch_size=batch_size,
+                          shuffle=True if train else False,
+                          pin_memory=True,
+                          )
+    # Train is either true or false
+    # Calculate train test split
+    split_ratio = 0.8
+    total_len = len(test_dataset)
+    train_len = int(total_len * split_ratio)
+    test_len  = total_len - train_len
+    seed=42
+
+    train_subset, test_subset = random_split(test_dataset,
+                                             [train_len, test_len],
+                                             generator=torch.Generator().manual_seed(seed))
+
+    chosen_subset = train_subset if train else test_subset
+
+    return DataLoader(
+        chosen_subset,
+        batch_size=batch_size,
+        shuffle=(True if train else False),
+        pin_memory=True,
+    )
 
 
 def plot_accuracy_graph(history):
