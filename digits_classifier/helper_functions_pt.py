@@ -137,7 +137,7 @@ def get_custom_test_dataset_loader(dataset_path, batch_size):
         denoised_digit = sudoku_cells_reduce_noise(digit_inv)
         if denoised_digit is not None:
             return Image.fromarray(denoised_digit)
-        return np.zeros((28, 28), dtype=np.uint8)
+        return digit_inv
 
     test_dataset = ImageFolder(
         root=dataset_path,

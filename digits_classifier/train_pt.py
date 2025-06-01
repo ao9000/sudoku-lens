@@ -1,7 +1,7 @@
 import torch
-import torchvision
 import torch.nn.functional as F
 from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_training_graph, plot_test_graph, get_mnist_transform, get_custom_test_dataset_loader
+from tqdm import tqdm
 
 
 # Constants
@@ -33,9 +33,8 @@ print(model)
 # Keep track of training progress
 history = {
     "train_loss": [],
-    "train_samples_seen": [],
+    "train_acc": [],
     "test_loss": [],
-    "test_samples_seen": [i*len(train_loader.dataset) for i in range(train_epochs+1)],
     "test_acc": [],
 }
 
@@ -43,8 +42,15 @@ def train_one_epoch(model, optimizer, train_loader, epoch):
     # Switch model to train mode
     model.train()
 
+    # Logging stats
+    running_loss = 0.0
+    running_correct = 0
+    total_samples = 0
+
     # Loop all minibatch training data
-    for batch_idx, (data, target) in enumerate(train_loader):
+    prog_bar = tqdm(train_loader, desc=f"Epoch {epoch}", leave=False)
+    for data, target in prog_bar:
+    # for batch_idx, (data, target) in enumerate(train_loader):
         # Data = [batch_size, channel, width, height
         # batch_idx = index of batch of batch_sized tensors
         # target = ground truth label
@@ -64,24 +70,36 @@ def train_one_epoch(model, optimizer, train_loader, epoch):
         # Update Weights using Optimizer
         optimizer.step()
 
-        # Logging
-        if batch_idx % log_batch_interval == 0:
-            # Print
-            print(f'Epoch: {epoch}, Samples: {batch_idx * len(data)}/{len(train_loader.dataset)}, Loss: {loss.item():.3f}')
-            # Record training loss & samples seen
-            history['train_loss'].append(loss.item())
-            history['train_samples_seen'].append((batch_idx * batch_size) + ((epoch - 1) * len(train_loader.dataset)))
+        # Accumulate epoch stats
+        batch_size = data.size(0)
+        running_loss += loss.item() * batch_size
+        pred = output.data.max(1)[1]
+        running_correct += pred.eq(target).sum().item()
+        total_samples += batch_size
+
+    # Compute epoch stats
+    epoch_loss = running_loss / total_samples
+    epoch_acc = running_correct / total_samples
+
+    # Logging
+    # Print
+    print(f'Epoch: {epoch}, Train Acc: {epoch_acc:.4f}, Train Loss: {epoch_loss:.4f}')
+    # Record stats
+    history['train_loss'].append(epoch_loss)
+    history['train_acc'].append(epoch_acc)
             
     # Checkpoint model weights & optimizer
-    torch.save(model.state_dict(), f'models/model_epoch{epoch}.pth')
-    torch.save(optimizer.state_dict(), f'models/optimizer_epoch{epoch}.pth')
+    torch.save(model.state_dict(), f'models/pt_cnn_model_epoch{epoch}.pth')
+    torch.save(optimizer.state_dict(), f'models/pt_cnn_optimizer_epoch{epoch}.pth')
 
 def test(model, test_loader):
     # Run one pass of samples in val_dataloader
     # Switch model to eval mode
     model.eval()
-    epoch_test_loss = 0
-    correct = 0
+
+    running_loss = 0.0
+    running_correct = 0
+    total_samples = 0
 
     # Disable Gradient Computation
     with torch.no_grad():
@@ -90,33 +108,39 @@ def test(model, test_loader):
             # Forward Pass: Compute Network’s Output
             output = model(data)
 
+            batch_size = data.size(0)
             # Compute sum of Loss for This Batch, negative log‐likelihood loss
-            epoch_test_loss += F.nll_loss(output, target, size_average=False).item()
+            loss  = F.nll_loss(output, target, reduction='mean')
+            running_loss += loss.item() * batch_size
 
             # Get Predicted Class Labels
-            pred = output.data.max(1, keepdim=True)[1]
-
+            pred = output.data.max(1)[1]
             # Sum Correct in pred results tensor
-            correct += pred.eq(target.data.view_as(pred)).sum()
+            running_correct += pred.eq(target).sum().item()
+            total_samples += batch_size
 
     # Divide sum loss to get mean loss
-    epoch_test_loss /= len(test_loader.dataset)
-    # Record
-    history['test_loss'].append(epoch_test_loss)
-    history['test_acc'].append(correct / len(test_loader.dataset))
+    epoch_loss = running_loss / total_samples
+    epoch_acc = running_correct / total_samples
     # Print
-    print(f'Test, Average loss: {epoch_test_loss:.3f}, Score: {correct}/{len(test_loader.dataset)}, Accuracy: {correct / len(test_loader.dataset):.3f}')
+    print(f"Epoch {epoch:>2d}, Test Acc: {epoch_acc:.4f}, Test Loss: {epoch_loss:.4f}")
+
+    # Record
+    history['test_loss'].append(epoch_loss)
+    history['test_acc'].append(epoch_acc)
 
 
 # Run training
+epoch=0
 test(model, val_loader)
 for epoch in range(1, train_epochs + 1):
     train_one_epoch(model, optimizer, train_loader, epoch)
+    print("Mnist test set")
     test(model, val_loader)
     print("Custom test set")
     test(model, get_custom_test_dataset_loader('test', 32))
 
-
-plot_training_graph(history)
-plot_test_graph(history)
+# Generate training graphs
+# plot_training_graph(history)
+# plot_test_graph(history)
 
