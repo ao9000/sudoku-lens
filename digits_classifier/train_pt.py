@@ -1,7 +1,7 @@
 import torch
 import torchvision
 import torch.nn.functional as F
-from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_training_graph, plot_test_graph, get_transform
+from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_training_graph, plot_test_graph, get_mnist_transform, get_custom_test_dataset_loader
 
 
 # Constants
@@ -14,7 +14,7 @@ torch.backends.cudnn.enabled = False
 torch.manual_seed(random_seed)
 
 # Load dataset
-transform = get_transform()
+transform = get_mnist_transform()
 train_loader = get_mnist_dataset_loader('train', True, transform, batch_size)
 val_loader = get_mnist_dataset_loader('val', False, transform, batch_size)
 
@@ -113,6 +113,8 @@ test(model, val_loader)
 for epoch in range(1, train_epochs + 1):
     train_one_epoch(model, optimizer, train_loader, epoch)
     test(model, val_loader)
+    print("Custom test set")
+    test(model, get_custom_test_dataset_loader('test', 32))
 
 
 plot_training_graph(history)

@@ -2,7 +2,7 @@ from helper_functions_tf import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score
 import os
 import cv2
-from helper_functions_pt import MNISTClassifier, get_transform
+from helper_functions_pt import MNISTClassifier, get_mnist_transform
 import torch
 from PIL import Image
 
@@ -41,7 +41,7 @@ for file in os.listdir(test_directory):
             if digit is not None:
                 digit = Image.fromarray(denoised_digit)
                 # Reshape to fit model input, [1,28,28]
-                digit_tensor = get_transform()(digit)
+                digit_tensor = get_mnist_transform()(digit)
                 # Add batch dim, send to device
                 digit_tensor = digit_tensor.unsqueeze(0).to(device)
 

@@ -1,3 +1,4 @@
+import cv2
 import torch
 import torchvision
 import torch.nn as nn
@@ -6,9 +7,14 @@ import torch.nn.init as init
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+from torchvision.datasets import ImageFolder
+from helper_functions_tf import sudoku_cells_reduce_noise
+from PIL import Image
+import numpy as np
 
 
-def get_transform():
+def get_mnist_transform():
     transform = torchvision.transforms.Compose([
         # Convert to pytorch image tensor
         torchvision.transforms.ToTensor(),
@@ -125,5 +131,23 @@ def plot_test_graph(history):
 
 
 def get_custom_test_dataset_loader(dataset_path, batch_size):
-    pass
+    def loader(img_path):
+        img_gray = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        digit_inv = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 27, 11)
+        denoised_digit = sudoku_cells_reduce_noise(digit_inv)
+        if denoised_digit is not None:
+            return Image.fromarray(denoised_digit)
+        return np.zeros((28, 28), dtype=np.uint8)
+
+    test_dataset = ImageFolder(
+        root=dataset_path,
+        loader=loader,
+        transform=get_mnist_transform(),
+    )
+
+    return DataLoader(test_dataset,
+                      batch_size=batch_size,
+                      shuffle=False,
+                      pin_memory=True,
+                      )
 
