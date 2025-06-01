@@ -5,20 +5,20 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import load_img
 import numpy as np
-from helper_functions import sudoku_cells_reduce_noise
+from helper_functions_tf import sudoku_cells_reduce_noise
 from sklearn.metrics import confusion_matrix, accuracy_score
 import os
 import cv2
 
 
 # Load trained model
-model = tf.keras.models.load_model('digits_classifier/models/model.h5')
+model = tf.keras.models.load_model('models/model.h5')
 
 # Show the model architecture
 model.summary()
 
 # Define testing image filename
-test_directory = "digits_classifier/test"
+test_directory = "test"
 
 # Initialize lists to record score
 y_pred, y_true = [], []
