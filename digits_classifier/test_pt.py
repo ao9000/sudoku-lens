@@ -10,7 +10,7 @@ from PIL import Image
 # Load trained model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = MNISTClassifier().to(device)
-state_dict = torch.load("models/pt_cnn/model_epoch10.pth", map_location=device)
+state_dict = torch.load("models/pt_cnn/ft_model_epoch15.pth", map_location=device)
 model.load_state_dict(state_dict)
 model.eval()
 

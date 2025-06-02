@@ -123,6 +123,9 @@ def get_custom_test_dataset_loader(dataset_path, train, batch_size):
                                              [train_len, test_len],
                                              generator=torch.Generator().manual_seed(seed))
 
+    print(f"Train len: {len(train_subset)}")
+    print(f"Test len: {len(test_subset)}")
+
     chosen_subset = train_subset if train else test_subset
 
     return DataLoader(
@@ -176,3 +179,44 @@ def plot_loss_graph(history):
     plt.savefig("models/pt_cnn/loss.png")
     plt.close(fig)
 
+
+def plot_accuracy_graph_ft(history):
+    epochs = range(1, len(history['train_acc']) + 1)
+
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_locator(MultipleLocator(base=1.0))
+
+    # Plot each curve
+    plt.plot(epochs, history['train_acc'], label="Sudoku Train Accuracy", color='blue')
+    plt.plot(epochs, history['test_acc'], label="Sudoku Test Accuracy", color='orange')
+
+    # Labels, title, legend
+    plt.title('Fine-tuning Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(loc='upper left')
+
+    # Save figure to disk
+    plt.savefig("models/pt_cnn/ft_accuracy.png")
+    plt.close(fig)
+
+
+def plot_loss_graph_ft(history):
+    epochs = range(1, len(history['train_loss']) + 1)
+
+    fig, ax = plt.subplots()
+    ax.xaxis.set_major_locator(MultipleLocator(base=1.0))
+
+    # Plot each curve
+    plt.plot(epochs, history['train_loss'], label="Sudoku Train Loss", color='blue')
+    plt.plot(epochs, history['test_loss'], label="Sudoku Test Loss", color='orange')
+
+    # Labels, title, legend
+    plt.title('Fine-tuning Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend(loc='upper left')
+
+    # Save figure to disk
+    plt.savefig("models/pt_cnn/ft_loss.png")
+    plt.close(fig)
