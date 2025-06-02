@@ -38,7 +38,7 @@ for file in os.listdir(test_directory):
             # Remove surrounding noise
             denoised_digit = sudoku_cells_reduce_noise(digit_inv)
 
-            if digit is not None:
+            if denoised_digit is not None:
                 digit = Image.fromarray(denoised_digit)
                 # Reshape to fit model input, [1,28,28]
                 digit_tensor = get_mnist_transform()(digit)

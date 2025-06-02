@@ -1,17 +1,27 @@
 import cv2
 from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid, get_cells_from_9_main_cells
-from digits_classifier.helper_functions import sudoku_cells_reduce_noise
-import tensorflow as tf
+from digits_classifier import sudoku_cells_reduce_noise
+# import tensorflow as tf
 from csp import csp, create_empty_board, BLANK_STATE
 from backtracking import backtracking
 import numpy as np
 import copy
 import imutils
+import torch
+from digits_classifier.helper_functions_pt import MNISTClassifier, get_mnist_transform
+from PIL import Image
 
 
 def main():
     # Load trained model
-    model = tf.keras.models.load_model('digits_classifier/models/model.h5')
+    # model = tf.keras.models.load_model('digits_classifier/models/model.h5')
+    # Pytorch model instead
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+    model = MNISTClassifier().to(device)
+    state_dict = torch.load("digits_classifier/models/pt_cnn/ft_model_epoch15.pth", map_location=device)
+    model.load_state_dict(state_dict)
+    model.eval()
 
     # Connect to webcam
     cap = cv2.VideoCapture(0)
@@ -120,11 +130,20 @@ def main():
 
                             # Digit present
                             if digit is not None:
-                                # Reshape to fit model input
-                                digit = digit.reshape((1, 28, 28, 1))
+                                # # Reshape to fit model input
+                                # digit = digit.reshape((1, 28, 28, 1))
+                                # # Make prediction
+                                # board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0] + 1
 
-                                # Make prediction
-                                board[row_index][box_index] = np.argmax(model.predict(digit), axis=-1)[0] + 1
+                               # Make prediction
+                                digit = Image.fromarray(digit)
+                                # Reshape to fit model input, [1,28,28]
+                                digit_tensor = get_mnist_transform()(digit)
+                                # Add batch dim, send to device
+                                digit_tensor = digit_tensor.unsqueeze(0).to(device)
+                                with torch.no_grad():
+                                    logits = model(digit_tensor)
+                                    board[row_index][box_index] = torch.argmax(logits, dim=1).item() + 1
 
                     # Perform backtracking/CSP to solve detected puzzle
                     # If smaller amount of digits provided, use backtracking
