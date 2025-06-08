@@ -142,14 +142,19 @@ def filter_non_square_contours(cnts):
 
         # Check if square
         if len(approx) == 4:
-            # Get width & height of contour
-            _, _, width, height = cv2.boundingRect(approx)
+            # # Get width & height of contour
+            # _, _, width, height = cv2.boundingRect(approx)
+
+            # Change to rotatedRect
+            rect = cv2.minAreaRect(approx)
+            width, height = rect[1]
 
             # Compute aspect ratio
             aspect_ratio = width / height
 
             # Square will have aspect ratio of around 1
-            if 0.85 <= aspect_ratio <= 1.15:
+            tol = 0.15  # Tolerance for aspect ratio
+            if (1.0 - tol) <= aspect_ratio <= (1.0 + tol):
                 # Append into list
                 square_indexes.append(cnt_index)
 
