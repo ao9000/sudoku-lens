@@ -143,7 +143,15 @@ def main():
                                 digit_tensor = digit_tensor.unsqueeze(0).to(device)
                                 with torch.no_grad():
                                     logits = model(digit_tensor)
-                                    board[row_index][box_index] = torch.argmax(logits, dim=1).item() + 1
+                                    # Get confidence score
+                                    confidence = torch.max(torch.softmax(logits, dim=1)).item()
+                                    # If confidence is too low, ignore
+                                    conf_thresh = 0.8
+                                    if confidence >= conf_thresh:
+                                        board[row_index][box_index] = torch.argmax(logits, dim=1).item() + 1
+                                    else:
+                                        # Low confidence, maybe its noise, ignore
+                                        board[row_index][box_index] = BLANK_STATE
 
                     # Perform backtracking/CSP to solve detected puzzle
                     # If smaller amount of digits provided, use backtracking
