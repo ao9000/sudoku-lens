@@ -21,22 +21,15 @@ def sudoku_cells_reduce_noise(digit_inv):
     :return: type: numpy.ndarray
     Binary image of the digit after noise reduction
     """
-    # Resize to 28x28 first
-    height, width = digit_inv.shape
-    # Use different interpolation methods based on enlargement or shrinking
-    interp = (cv2.INTER_AREA if (height > 28 or width > 28) else cv2.INTER_CUBIC)
-    # 28x28 resize
-    small = cv2.resize(digit_inv, (28, 28), interpolation=interp)
-
     # Eliminate surrounding noise
     # Detect contours
     cnts, hierarchy = cv2.findContours(digit_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Relative area threshold
     # Total area of 28x28 image is 784 pixels
-    total_area = 28 * 28
-    # Calculate area threshold based on 5% of total area
-    frac = 0.07
+    total_area = digit_inv.shape[0] * digit_inv.shape[1]
+    # Calculate area threshold based on 1.5% of total area
+    frac = 0.015
     area_thresh = total_area * frac
     # Filter contours over 5 pixel square area
     cnts = [cnt for cnt in cnts if cv2.contourArea(cnt) > area_thresh]
