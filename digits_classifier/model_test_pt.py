@@ -49,6 +49,8 @@ for file in os.listdir(test_directory):
                 with torch.no_grad():
                     logits = model(digit_tensor)
                     prediction = torch.argmax(logits, dim=1).item()+1
+                    # Get confidence score
+                    confidence = torch.max(torch.softmax(logits, dim=1)).item()
 
                 # Save fail detections
                 if str(file) != str(prediction):
@@ -58,7 +60,7 @@ for file in os.listdir(test_directory):
                 y_true.append(str(file))
                 y_pred.append(str(prediction))
 
-                print(f'Predicted:{prediction}, Actual:{file}')
+                print(f'Predicted:{prediction}, Confidence: {confidence}, Actual:{file}')
 
 # Print final scores
 print(f"Total images: {len(y_pred)}")
