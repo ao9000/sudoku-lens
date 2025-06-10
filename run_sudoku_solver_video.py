@@ -1,5 +1,5 @@
 import cv2
-from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid, get_cells_from_9_main_cells
+from image_processing import get_grid_dimensions, filter_non_square_contours, sort_grid_contours, reduce_noise, transform_grid, get_cells_from_9_main_cells, is_blur
 from digits_classifier import sudoku_cells_reduce_noise
 # import tensorflow as tf
 from csp import csp, create_empty_board, BLANK_STATE
@@ -46,6 +46,12 @@ def main():
             # Cells must fit in 28x28 for the model, big images will exceed this threshold with aspect ratio resize
             if frame.shape[1] > 700:
                 frame = imutils.resize(frame, width=700)
+
+            # We want to skip blurry frames
+            blur_bool, lv = is_blur(frame, thresh=100)
+            if blur_bool:
+                print(f"Skipping blurry frame, thresh={lv}")
+                continue
 
             # Extract grid
             grid_coordinates = get_grid_dimensions(frame)

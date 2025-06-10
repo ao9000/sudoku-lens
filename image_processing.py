@@ -268,3 +268,13 @@ def get_cells_from_9_main_cells(cnts):
                 new_cnts.append(new_cnt)
 
     return new_cnts
+
+
+def is_blur(image, thresh=100):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    lv = cv2.Laplacian(gray, cv2.CV_64F).var()
+
+    if lv < thresh:
+        return True, lv
+    else:
+        return False, lv
