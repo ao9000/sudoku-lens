@@ -4,23 +4,30 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 # Constants
-epoch=15
-batch_size = 32
-lr = 0.001
+epoch=10
+batch_size = 64
+
 random_seed = 42
 torch.backends.cudnn.enabled = False
 torch.manual_seed(random_seed)
 
 
 # Load checkpoint
-ckpt_model_path = "models/pt_cnn/model_epoch10.pth"
+ckpt_model_path = "models/pt_cnn/model_epoch14.pth"
 # ckpt_optimizer_path = "models/pt_cnn/optimizer_epoch10.pth"
 # Load ckpt state
+# model, optimizer = build_model(
+#     optimizer_name="sgd",
+#     lr=lr,
+#     momentum=0.9,
+# ) # Pre-training was lr=0.01
+
 model, optimizer = build_model(
-    optimizer_name="sgd",
-    lr=lr,
-    momentum=0.9,
-) # Pre-training was lr=0.01
+    optimizer_name="adadelta",
+    lr=0.5
+)
+
+
 # Dont load the prev optimizer, since new dataset
 state_dict = torch.load(ckpt_model_path)
 model.load_state_dict(state_dict)

@@ -5,8 +5,9 @@ from tqdm import tqdm
 
 
 # Constants
-train_epochs = 10
-batch_size=32
+# Updated to follow the original pytorch mnist tutorial hyperparameters
+train_epochs = 14
+batch_size=64
 
 random_seed = 42
 torch.backends.cudnn.enabled = False
@@ -20,9 +21,8 @@ val_loader = get_mnist_dataset_loader('val', False, transform, batch_size)
 
 # Building model
 model, optimizer = build_model(
-    optimizer_name="sgd",
-    lr=0.01,
-    momentum=0.9,
+    optimizer_name="adadelta",
+    lr=1.0
 )
 
 # Print model summary
@@ -88,7 +88,7 @@ def train_one_epoch(model, optimizer, train_loader, epoch):
     # Record stats
     history['train_loss'].append(epoch_loss)
     history['train_acc'].append(epoch_acc)
-            
+
     # Checkpoint model weights & optimizer
     torch.save(model.state_dict(), f'models/pt_cnn/model_epoch{epoch}.pth')
     torch.save(optimizer.state_dict(), f'models/pt_cnn/optimizer_epoch{epoch}.pth')

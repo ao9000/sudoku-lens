@@ -70,6 +70,7 @@ class MNISTClassifier(nn.Module):
     """
     v1 Source: https://nextjournal.com/gkoehler/pytorch-mnist
     v2 Source: https://github.com/PyTorch/examples/blob/main/mnist/main.py
+    Had to find better model due to not able to make mistake on android app
     """
     def __init__(self):
         super(MNISTClassifier, self).__init__()
@@ -100,6 +101,7 @@ def build_model(optimizer_name, **kwargs):
     # Init model network
     model = MNISTClassifier()
     name = optimizer_name.lower()
+
     if name == "adam":
         # All keyword args (lr, weight_decay, betas, etc.) go into Adam(...)
         optimizer = optim.Adam(model.parameters(), **kwargs)
@@ -111,8 +113,16 @@ def build_model(optimizer_name, **kwargs):
     elif name == "rmsprop":
         optimizer = optim.RMSprop(model.parameters(), **kwargs)
 
+    elif name == "adadelta":
+        # Adadelta typically only takes lr and rho; defaults mirror PyTorch example
+        optimizer = optim.Adadelta(model.parameters(), **kwargs)
+
     else:
-        raise ValueError(f"Unsupported optimizer: {optimizer_name!r}. "f"Choose from 'adam', 'sgd', 'rmsprop'")
+        raise ValueError(
+            f"Unsupported optimizer: {optimizer_name!r}. "
+            f"Choose from 'adam', 'sgd', 'rmsprop', 'adadelta'"
+        )
+
     return model, optimizer
 
 

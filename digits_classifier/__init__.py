@@ -28,8 +28,8 @@ def sudoku_cells_reduce_noise(digit_inv):
     # Relative area threshold
     # Total area of 28x28 image is 784 pixels
     total_area = digit_inv.shape[0] * digit_inv.shape[1]
-    # Calculate area threshold based on 1.5% of total area
-    frac = 0.015
+    # Calculate area threshold based on 1% of total area
+    frac = 0.010
     area_thresh = total_area * frac
     # Filter contours over 5 pixel square area
     cnts = [cnt for cnt in cnts if cv2.contourArea(cnt) > area_thresh]
