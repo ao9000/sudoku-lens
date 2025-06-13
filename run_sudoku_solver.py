@@ -11,12 +11,14 @@ from digits_classifier import sudoku_cells_reduce_noise
 # import tensorflow as tf
 from csp import csp, create_empty_board, BLANK_STATE
 from backtracking import backtracking
+from algorithm_x_dancing_links import algorithm_x_dl
 import numpy as np
 import copy
 import imutils
 import torch
 from digits_classifier.helper_functions_pt import MNISTClassifier, get_mnist_transform
 from PIL import Image
+from copy import deepcopy
 
 
 def main():
@@ -32,7 +34,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     model = MNISTClassifier().to(device)
-    state_dict = torch.load("digits_classifier/models/pt_cnn/ft_model_epoch15.pth", map_location=device)
+    state_dict = torch.load("digits_classifier/models/pt_cnn/ft_model_epoch12.pth", map_location=device)
     model.load_state_dict(state_dict)
     model.eval()
 
@@ -44,8 +46,14 @@ def main():
         # Check if image is too big
         # If so, Standardise image size to avoid error in cell image manipulation
         # Cells must fit in 28x28 for the model, big images will exceed this threshold with aspect ratio resize
-        if image.shape[1] > 700:
-            image = imutils.resize(image, width=700)
+        try:
+            if image.shape[1] > 700:
+                image = imutils.resize(image, width=700)
+        except AttributeError:
+            # Delete the image if it cannot be resized
+            print(f"File: {file_name}, Unable to resize image, deleting")
+            os.remove(os.path.join(image_directory, file_name))
+            continue
 
         # Extract grid
         grid_coordinates = get_grid_dimensions(image)
@@ -92,6 +100,8 @@ def main():
                     else:
                         # Unable to identify main cells
                         print(f"File: {file_name}, Unable to extract grid cells properly")
+                        # Delete the image from unsolved directory
+                        os.remove(os.path.join(image_directory, file_name))
                         continue
 
                 # Finally
@@ -140,18 +150,26 @@ def main():
                                 logits = model(digit_tensor)
                                 board[row_index][box_index] = torch.argmax(logits, dim=1).item() + 1
 
-                # Perform backtracking/CSP to solve detected puzzle
-                # If smaller amount of digits provided, use backtracking
-                # Else CSP is faster
-                if sum(cell.count(BLANK_STATE) for cell in board) > 70:
-                    # Backtracking, more than 70/81 blanks
-                    solved_board, steps = backtracking(copy.deepcopy(board))
-                else:
-                    # CSP, less than 70/81 blanks
-                    solved_board, steps = csp(copy.deepcopy(board))
+                # # Perform backtracking/CSP to solve detected puzzle
+                # # If smaller amount of digits provided, use backtracking
+                # # Else CSP is faster
+                # if sum(cell.count(BLANK_STATE) for cell in board) > 70:
+                #     # Backtracking, more than 70/81 blanks
+                #     solved_board, steps = backtracking(copy.deepcopy(board))
+                # else:
+                #     # CSP, less than 70/81 blanks
+                #     solved_board, steps = csp(copy.deepcopy(board))
+
+                generator = algorithm_x_dl((3, 3), deepcopy(board))
+
+                try:
+                    solved = next(generator, None)
+                except KeyError:
+                    print("Invalid Sudoku board configuration to begin with.")
+                    solved = None
 
                 # Check if puzzle is valid
-                if steps:
+                if solved is not None:
                     # Solved
                     # Draw answers on the sudoku image
                     for row_index, row in enumerate(board):
@@ -162,7 +180,7 @@ def main():
 
                                 # Calculate font size
                                 for num in np.arange(1.0, 10.0, 0.1):
-                                    text_size = cv2.getTextSize(str(solved_board[row_index][box_index]),
+                                    text_size = cv2.getTextSize(str(solved[row_index][box_index]),
                                                                 fontFace=cv2.FONT_HERSHEY_DUPLEX,
                                                                 fontScale=num, thickness=2)
 
@@ -171,29 +189,35 @@ def main():
                                         break
 
                                 # Fill in answers in sudoku image
-                                cv2.putText(image, str(solved_board[row_index][box_index]),
+                                cv2.putText(image, str(solved[row_index][box_index]),
                                             (x + grid_coordinates[0][0] + (width * 1 // 4),
                                              y + grid_coordinates[0][1] + (height * 3 // 4)),
                                             cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
 
-                    # Fill in information at bottom left
-                    cv2.putText(image, f"Solved in {steps} steps",
-                                (0, image.shape[0]), cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
+                    # # Fill in information at bottom left
+                    # cv2.putText(image, f"Solved in {steps} steps",
+                    #             (0, image.shape[0]), cv2.FONT_HERSHEY_SIMPLEX, font_size, (0, 255, 0), 2)
 
                     # Save answers in solved directory
                     cv2.imwrite(f"images/solved/{os.path.splitext(file_name)[0]}.png", image)
 
-                    print(f"File: {file_name}, Solved in {steps} steps")
+                    print(f"File: {file_name}, Solved")
                 else:
                     # Cannot be solved (Wrong/invalid puzzle)
                     # Reasons can be invalid puzzle or grid/digits detected wrongly
                     print(f"File: {file_name}, Invalid puzzle or digit detection error")
+                    # Delete the image from unsolved directory
+                    os.remove(os.path.join(image_directory, file_name))
             else:
                 # Unsalvageable
                 print(f"File: {file_name}, Unable to extract grid cells properly")
+                # Delete the image from unsolved directory
+                os.remove(os.path.join(image_directory, file_name))
         else:
             # Fail to detect grid
             print(f"File: {file_name}, Unable to detect grid")
+            # Delete the image from unsolved directory
+            os.remove(os.path.join(image_directory, file_name))
 
 
 if __name__ == '__main__':

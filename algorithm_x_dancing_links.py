@@ -16,6 +16,9 @@ from copy import deepcopy
 BLANK_STATE = 0
 
 def algorithm_x_dl(size, grid):
+    # Make sure grid is a numpy array
+    grid = np.array(grid, dtype=int)
+
     R, C = size
     N = R * C
     X = ([("rc", rc) for rc in product(range(N), range(N))] +
