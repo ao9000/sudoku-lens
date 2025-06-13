@@ -4,7 +4,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 
 # Constants
-epoch=10
+epoch=14
 batch_size = 64
 
 random_seed = 42
