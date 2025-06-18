@@ -64,7 +64,7 @@ tensorflow-io-gcs-filesystem==0.31.0
 termcolor==3.1.0
 threadpoolctl==3.6.0
 tokenizers==0.21.1
-torch==2.7.0+cu128
+torch==2.7.1
 torchaudio==2.7.0+cu128
 torchsummary==1.5.1
 torchvision==0.22.0+cu128
