@@ -7,3 +7,4 @@
 *digits_classifier/fails
 /tests/data
 *MNIST
+*digits_alpha_classifier/test

@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from helper_functions_pt import get_mnist_dataset_loader, build_model, plot_accuracy_graph, plot_loss_graph, get_mnist_transform, get_custom_test_dataset_loader
+from helper_functions_pt import get_mnist_emnist_dataset_loader, build_model, plot_accuracy_graph, plot_loss_graph, get_mnist_transform, get_custom_test_dataset_loader
 from tqdm import tqdm
 
 
@@ -15,8 +15,13 @@ torch.manual_seed(random_seed)
 
 # Load dataset
 transform = get_mnist_transform()
-train_loader = get_mnist_dataset_loader('train', True, transform, batch_size)
-val_loader = get_mnist_dataset_loader('val', False, transform, batch_size)
+
+train_loader = get_mnist_emnist_dataset_loader('train', True, batch_size)
+val_loader = get_mnist_emnist_dataset_loader('val', False, batch_size)
+
+# Print dataset sizes
+print(f"Train dataset size: {len(train_loader.dataset)}")
+print(f"Validation dataset size: {len(val_loader.dataset)}")
 
 
 # Building model

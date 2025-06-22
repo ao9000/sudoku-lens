@@ -5,40 +5,116 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset, ConcatDataset
 from torchvision.datasets import ImageFolder
 from digits_classifier import sudoku_cells_reduce_noise
 from PIL import Image
 from matplotlib.ticker import MultipleLocator
+import torchvision.transforms.functional as TF
+import torchvision.transforms as T
+import numpy as np
 
+
+def get_mnist_emnist_mean_std():
+    # Mean and std of combined MNIST and EMNIST datasets
+    # For digits 1-9
+    return (0.159903,), (0.323860,)
 
 def get_mnist_transform():
     transform = torchvision.transforms.Compose([
         # Convert to pytorch image tensor
         torchvision.transforms.ToTensor(),
         # Mean and std of mnist digit dataset
-        torchvision.transforms.Normalize((0.1307,), (0.3081,)),
+        torchvision.transforms.Normalize(get_mnist_emnist_mean_std()[0], get_mnist_emnist_mean_std()[1]),
     ])
     return transform
 
 
-def get_mnist_dataset_loader(save_path, train, transform, batch_size):
+def get_mnist_emnist_dataset_loader(save_path, train, batch_size):
+    def deskew_pil(img: Image.Image) -> Image.Image:
+        arr = np.array(img)
+        m = cv2.moments(arr)
+        if abs(m['mu02']) < 1e-2:
+            return img
+        skew = m['mu11'] / m['mu02']
+        M = np.array([[1, skew, -0.5 * 28 * skew],
+                      [0, 1, 0]], dtype=np.float32)
+        deskewed = cv2.warpAffine(arr, M, (28, 28), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+        return Image.fromarray(deskewed)
+
+    # Get mean and std for normalization
+    mean, std = get_mnist_emnist_mean_std()
+
+    # Build two pipelines
+    #    - train_pipeline: random aug → deskew → toTensor → normalize
+    #    - eval_pipeline: deskew → toTensor → normalize
+    train_pipeline = T.Compose([
+        # 50% chance to randomly rotate ±10°
+        T.RandomApply([T.RandomRotation(10)], p=0.5),
+
+        # 50% chance to randomly translate up to 10% (x/y)
+        T.RandomApply([T.RandomAffine(degrees=0, translate=(0.1, 0.1))], p=0.5),
+
+        # 50% chance to randomly scale between 0.9×–1.1×
+        T.RandomApply([T.RandomAffine(degrees=0, scale=(0.9, 1.1))], p=0.5),
+
+        # 50% chance to randomly shear ±5°
+        T.RandomApply([T.RandomAffine(degrees=0, shear=5)], p=0.5),
+
+        # then always deskew → toTensor → normalize
+        T.Lambda(deskew_pil),
+        T.ToTensor(),
+        T.Normalize(mean, std),
+    ])
+
+    # No augmentations
+    eval_pipeline = T.Compose([
+        T.Lambda(deskew_pil),
+        T.ToTensor(),
+        T.Normalize(mean, std),
+    ])
+
+    mnist_transform  = train_pipeline if train else eval_pipeline
+
+    emnist_base = [T.Lambda(lambda img: TF.hflip(TF.rotate(img, -90)))]
+    emnist_pipeline = (emnist_base + (train_pipeline.transforms if train else eval_pipeline.transforms))
+    emnist_transform = T.Compose(emnist_pipeline)
+
+    # MNIST dataset 1-9
     # Target transform = remap the remaining labels from 1-9 to 0-8
-    dataset = torchvision.datasets.MNIST(save_path,
+    mnist_ds = torchvision.datasets.MNIST(save_path,
                                          train=train,
                                          download=True,
-                                         transform=transform,
+                                         transform=mnist_transform,
                                          target_transform=lambda y: y - 1)
 
     # Remove class 0, since we do not need them
-    nonzero_mask = (dataset.targets != 0)
+    nonzero_mask = (mnist_ds.targets != 0)
     nonzero_indices = nonzero_mask.nonzero(as_tuple=False).squeeze().tolist()
-    filtered = torch.utils.data.Subset(dataset, nonzero_indices)
+    mnist_filtered = torch.utils.data.Subset(mnist_ds, nonzero_indices)
 
-    return torch.utils.data.DataLoader(
-        filtered,
+
+    # EMNIST dataset 1-9
+    emnist_ds = torchvision.datasets.EMNIST(
+        root=save_path,
+        split='digits',
+        train=train,
+        download=True,
+        transform=emnist_transform,
+        target_transform=lambda y: y - 1  # same remapping
+    )
+
+    # Build a mask selecting only original labels 1–9
+    mask = (emnist_ds.targets >= 1) & (emnist_ds.targets <= 9)
+    indices = mask.nonzero(as_tuple=False).squeeze().tolist()
+    emnist_filtered = torch.utils.data.Subset(emnist_ds, indices)
+
+    # Combine into one dataset
+    combined = ConcatDataset([mnist_filtered, emnist_filtered])
+    return DataLoader(
+        combined,
         batch_size=batch_size,
-        shuffle=True if train else False,
+        shuffle=train,
         pin_memory=True
     )
 
