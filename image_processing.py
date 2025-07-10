@@ -255,7 +255,7 @@ def reduce_noise(grid):
     # Count the number of white pixels in each column
     vert_proj = thresh.sum(axis=0)
     # Threshold for vertical lines
-    v_thresh = vert_proj.max() * 0.25
+    v_thresh = vert_proj.max() * 0.15
     # Get the indices of the columns where the count is greater than the threshold
     index_col = np.where(vert_proj > v_thresh)[0]
 
@@ -272,7 +272,7 @@ def reduce_noise(grid):
 
     # Repeat same process for horizontal lines
     horz_proj = thresh.sum(axis=1)   # shape = (h,)
-    h_thresh = horz_proj.max() * 0.25
+    h_thresh = horz_proj.max() * 0.15
     ys = np.where(horz_proj > h_thresh)[0]
 
     h_runs = []
