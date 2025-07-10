@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 import math
 from imutils import contours
+import itertools
 
 
 def get_grid_dimensions(image):
@@ -223,8 +224,17 @@ def reduce_noise(grid):
     cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # Filter contours to find only small contours
+    # 1/15 of the grid area
     area_thresh = math.prod([num * 1/15 for num in grid.shape[:2]])
-    cnts = [cnt for cnt in cnts if cv2.contourArea(cnt) < area_thresh]
+
+    # Get cell height and width, for 9x9 grid
+    cell_h = grid.shape[0] // 9
+    cell_w = grid.shape[1] // 9
+
+    cnts = [cnt for cnt in cnts if (cv2.contourArea(cnt)) < area_thresh
+           and (r := cv2.boundingRect(cnt))[2] < cell_w * 0.8
+           and r[3] < cell_h * 0.8
+    ]
 
     # Draw contours over numbers on the grid
     cv2.drawContours(thresh, cnts, -1, (0, 0, 0), -1)
@@ -237,6 +247,43 @@ def reduce_noise(grid):
     # Closing to fix noise in grid lines
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, vertical_kernel, iterations=7)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, horizontal_kernel, iterations=7)
+
+    # Assumption: If the lines are more than 1/4 of the image, but not full, we will extend the lines
+    # Thresh is a binary image with white lines on black background
+    # Therefore, we can count how many white pixels are there in each row and column
+    # If the count is more than 1/4 of the image size, we will extend the lines
+
+    # Extend vertical lines
+    # Count the number of white pixels in each column
+    vert_proj = thresh.sum(axis=0)
+    # Threshold for vertical lines
+    v_thresh = vert_proj.max() * 0.25
+    # Get the indices of the columns where the count is greater than the threshold
+    index_col = np.where(vert_proj > v_thresh)[0]
+
+    # Group nearby indices to form runs
+    # Assume nearby indices are part of the same line
+    v_runs = []
+    for k, group in itertools.groupby(index_col, key=lambda i, c=itertools.count(): i - next(c)):
+        run = list(group)
+        v_runs.append(int(np.mean(run)))
+
+    # Extend lines
+    for x in v_runs:
+        cv2.line(thresh, (x,0), (x,grid.shape[0]), 255, 2)
+
+    # Repeat same process for horizontal lines
+    horz_proj = thresh.sum(axis=1)   # shape = (h,)
+    h_thresh = horz_proj.max() * 0.25
+    ys = np.where(horz_proj > h_thresh)[0]
+
+    h_runs = []
+    for k, group in itertools.groupby(ys, key=lambda i, c=itertools.count(): i - next(c)):
+        run = list(group)
+        h_runs.append(int(np.mean(run)))
+
+    for y in h_runs:
+        cv2.line(thresh, (0,y), (grid.shape[1],y), 255, 2)
 
     # Invert the image back to normal
     thresh = cv2.bitwise_not(thresh)
