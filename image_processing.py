@@ -201,10 +201,11 @@ def reduce_noise(grid):
     1. Convert input grid into greyscale
     2. Perform contour detection to obtain binary image (White lines, black background)
     3. Detect contour to get the bounding boxes for all the grid cells
-    4. Filter the contour for small contours
+    4. Filter the contour for small contours (80% of cell size)
     5. Cover up the digits on the cells to reduce noise
     6. Perform closing to strengthen the cell boarders for easier contour detection
-    7. Invert the image back to normal
+    7. Extend the lines if they are more than 1/4 of the image size
+    8. Invert the image back to normal
 
     :param grid: type: numpy.ndarray
     The image of the cropped and transformed grid
@@ -224,15 +225,12 @@ def reduce_noise(grid):
     cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     # Filter contours to find only small contours
-    # 1/15 of the grid area
-    area_thresh = math.prod([num * 1/15 for num in grid.shape[:2]])
-
     # Get cell height and width, for 9x9 grid
     cell_h = grid.shape[0] // 9
     cell_w = grid.shape[1] // 9
 
-    cnts = [cnt for cnt in cnts if (cv2.contourArea(cnt)) < area_thresh
-           and (r := cv2.boundingRect(cnt))[2] < cell_w * 0.8
+    # Filter contours based on area and size
+    cnts = [cnt for cnt in cnts if (r := cv2.boundingRect(cnt))[2] < cell_w * 0.8
            and r[3] < cell_h * 0.8
     ]
 
