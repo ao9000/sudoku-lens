@@ -1,6 +1,9 @@
 # Sudoku solver
 This project is the implementation of the sudoku solver using OpenCV, Tensorflow, Keras, Backtracking algorithm
 
+# Android App
+Check out the developed Android App for this repo at this link: https://play.google.com/store/apps/details?id=com.aozy.sudoku_lens&pcampaignid=web_share
+
 ## Screenshots
 ### run_backtracking_demo.py
 Backtracking before and after
