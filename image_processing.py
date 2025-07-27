@@ -41,6 +41,9 @@ def get_grid_dimensions(image):
     # Contour detection, assuming grid is the biggest contour in the image
     cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+    # Filter contours to find only square contours
+    cnts = filter_non_square_contours(cnts)
+
     # Sort from descending order & loop
     for cnt in sorted(cnts, key=lambda x: cv2.contourArea(x), reverse=True):
         # Use contours to transform grid into "Top down view/bird's eye view
