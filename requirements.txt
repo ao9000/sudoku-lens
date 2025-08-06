@@ -69,7 +69,7 @@ torchaudio==2.7.0+cu128
 torchsummary==1.5.1
 torchvision==0.22.0+cu128
 tqdm==4.67.1
-transformers==4.52.4
+transformers==4.53.0
 typeguard==2.13.3
 typing_extensions==4.13.2
 urllib3==2.4.0
